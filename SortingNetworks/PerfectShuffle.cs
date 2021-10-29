@@ -12,9 +12,7 @@ namespace SortingNetworks
         /// <summary>
         /// Represents a permutation that maps index <c>i</c> to <c>Permutation[i]</c>.
         /// </summary>
-        public readonly int[] Permutation;
-
-        private readonly int topbit;
+        public int[] Permutation { get; private set; }
 
         public PerfectShuffle(int n) {
             if (n < 2)
@@ -29,7 +27,6 @@ namespace SortingNetworks
                 throw new ArgumentOutOfRangeException(nameof(n), "Element count must be a power of 2.");
 
             Permutation = new int[n];
-            topbit = n >> 1;
             Reset();
         }
 
@@ -44,10 +41,14 @@ namespace SortingNetworks
         /// Applies perfect shuffle to current  <see cref="Permutation"/>.
         /// </summary>
         public void Shuffle() {
-            for (int i = 0; i < Permutation.Length / 2; ++i)
-                Swap(ref Permutation[i], ref Permutation[i | topbit]);
+            var p = new int[Permutation.Length];
+            int i = 0, j = Permutation.Length / 2;
+            for (int k = 0; k < Permutation.Length; k += 2) {
+                p[k] = Permutation[i++];
+                p[k + 1] = Permutation[j++];
+            }
 
-            static void Swap(ref int a, ref int b) => (a, b) = (b, a);
+            Permutation = p;
         }
     }
 }
