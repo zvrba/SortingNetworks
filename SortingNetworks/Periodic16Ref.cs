@@ -18,6 +18,11 @@ namespace SortingNetworks
         static readonly V Complement = Avx2.CompareEqual(Zero, Zero);
         // FF00FF00 (1 digit = 32 bits)
         static readonly V AlternatingMaskHi64 = Avx2.Xor(Complement, Avx2.ShiftRightLogical128BitLane(Complement, 8));
+        // F0F0F0F0
+        static readonly V AlternatingMaskLo32 = Avx2.Xor(
+            Complement.AsInt64(),
+            Avx2.ShiftLeftLogical(Complement.AsInt64(), 32)
+        ).AsInt32();
 
         const int ShufRev4 = 0x1B;
 
@@ -55,7 +60,7 @@ namespace SortingNetworks
             // DC985410
             // EFAB6723
 
-            Swap(ref lo, ref hi, AlternatingMaskHi64);  // H:CD984510 - L:BAEF3267
+            Swap(ref lo, ref hi, AlternatingMaskHi64);  // L:CD984510 - H:BAEF3267
             lo = Avx2.Shuffle(lo, 0b01001011);          // 
             hi = Avx2.Shuffle(hi, 0b10110100);          // 
             Swap(ref lo, ref hi, Avx2.CompareGreaterThan(hi, lo));
@@ -64,7 +69,16 @@ namespace SortingNetworks
             // ECA86420
             // FDB97531
 
+            Swap(ref lo, ref hi, AlternatingMaskLo32);  // L:ECA86420 - H:DF9B5713
+            hi = Avx2.Shuffle(hi, 0b10110001);
+            Swap(ref lo, ref hi, Avx2.CompareGreaterThan(hi, lo));
+
             // Final stage: restore order.
+
+            tmp1 = Avx2.UnpackLow(lo, hi);
+            tmp2 = Avx2.UnpackHigh(lo, hi);
+            lo = Avx2.Permute2x128(tmp1, tmp2, 0x20);
+            hi = Avx2.Permute2x128(tmp1, tmp2, 0x31);
 
             Avx.Store(data, lo);
             Avx.Store(data + 8, hi);
