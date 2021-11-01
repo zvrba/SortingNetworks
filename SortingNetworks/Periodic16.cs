@@ -12,6 +12,10 @@ namespace SortingNetworks
     /// </summary>
     class Periodic16
     {
+        public static unsafe void Direct(int* data) {
+
+        }
+
         static Expression Compare1x8(ParameterExpression lo, ParameterExpression hi, ParameterExpression tmp) {
             Debug.Assert(lo.Type == typeof(V));
             Debug.Assert(hi.Type == typeof(V));
@@ -19,16 +23,16 @@ namespace SortingNetworks
 
             return Expression.Block(
                 Expression.Assign(tmp, Reverse8(hi)),
-                Expression.Assign(lo, Expression.Call(AVX2.Min, lo, tmp)),
-                Expression.Assign(hi, Expression.Call(AVX2.Max, hi, tmp)),
+                Expression.Assign(lo, Expression.Call(IExpr.Min, lo, tmp)),
+                Expression.Assign(hi, Expression.Call(IExpr.Max, hi, tmp)),
                 Expression.Assign(hi, Reverse8(hi))
             );
         }
 
         static Expression Reverse8(ParameterExpression p) {
             Debug.Assert(p.Type == typeof(V));
-            var rev4 = Expression.Call(AVX2.Shuffle, p, Expression.Constant(0x1B, typeof(int)));        // Reversed within lanes
-            return Expression.Call(AVX2.Perm2x128, rev4, rev4, Expression.Constant(1, typeof(int)));    // Lanes swapped
+            var rev4 = Expression.Call(IExpr.Shuffle, p, Expression.Constant(0x1B, typeof(int)));        // Reversed within lanes
+            return Expression.Call(IExpr.Perm2x128, rev4, rev4, Expression.Constant(1, typeof(int)));    // Lanes swapped
         }
         
     }

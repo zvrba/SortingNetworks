@@ -9,7 +9,7 @@ namespace SortingNetworks
     /// <summary>
     /// Helpers for generating call expressions.
     /// </summary>
-    static class AVX2
+    static class IExpr
     {
         static readonly Type TAVX = typeof(Avx);
         static readonly Type TAVX2 = typeof(Avx2);
