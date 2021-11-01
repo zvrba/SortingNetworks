@@ -6,13 +6,7 @@ namespace SortingNetworks
     class Program
     {
         static void Main(string[] args) {
-            var p = new PerfectShuffle(8);
-            
-            p.Shuffle();
-            Print(p.Permutation);
-
-            p.Shuffle();
-            Print(p.Permutation);
+            Periodic16Ref.Test();
         }
 
         static void Print(int[] a) {

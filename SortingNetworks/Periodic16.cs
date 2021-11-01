@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Linq.Expressions;
+using System.Runtime.Intrinsics.X86;
 
 namespace SortingNetworks
 {
@@ -12,10 +13,6 @@ namespace SortingNetworks
     /// </summary>
     class Periodic16
     {
-        public static unsafe void Direct(int* data) {
-
-        }
-
         static Expression Compare1x8(ParameterExpression lo, ParameterExpression hi, ParameterExpression tmp) {
             Debug.Assert(lo.Type == typeof(V));
             Debug.Assert(hi.Type == typeof(V));
