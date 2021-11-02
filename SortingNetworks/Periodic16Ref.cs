@@ -26,12 +26,20 @@ namespace SortingNetworks
 
         const int ShufRev4 = 0x1B;
 
+        public static unsafe void Sort(int* data) {
+            Step(data);
+            Step(data);
+            Step(data);
+            Step(data);
+        }
+
         /// <summary>
-        /// Sorts 16 elements starting at <paramref name="data"/>.
+        /// One step of the sorting network for 16 elements.  Must be iterated 4 times.
         /// </summary>
         /// <param name="data"></param>
-        public static unsafe void Sort(int* data) {
-            V tmp1, tmp2, tmp3;
+        [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
+        static unsafe void Step(int* data) {
+            V tmp1, tmp2;
 
             // lo, hi are intermediate results after each stage and input to next one.
             var lo = Avx.LoadVector256(data);
@@ -44,7 +52,7 @@ namespace SortingNetworks
 
             tmp1 = Avx2.Shuffle(hi, ShufRev4);          // CDEF89AB
             hi = Avx2.Permute2x128(tmp1, tmp1, 1);      // 89ABCDEF
-            CompareSwap(ref lo, ref hi);
+            Swap(ref lo, ref hi, Avx2.CompareGreaterThan(hi, lo));
 
             // STAGE 2:
             // BA983210
@@ -54,7 +62,7 @@ namespace SortingNetworks
             tmp1 = Avx2.Shuffle(tmp1, ShufRev4);        // BA984567
             lo = Avx2.Permute2x128(lo, tmp1, 0x30);     // BA983210
             hi = Avx2.Permute2x128(hi, tmp1, 0x02);     // CDEF4567
-            CompareSwap(ref lo, ref hi);
+            Swap(ref lo, ref hi, Avx2.CompareGreaterThan(hi, lo));
 
             // STAGE 3:
             // DC985410
@@ -84,22 +92,13 @@ namespace SortingNetworks
             Avx.Store(data + 8, hi);
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
-        static void CompareSwap(ref V lo, ref V hi) {
-            var r = Avx2.CompareGreaterThan(hi, lo);
-            var t = Avx2.BlendVariable(lo, hi, r);
-            r = Avx2.Xor(r, Complement);
-            lo = Avx2.BlendVariable(lo, hi, r);
-            hi = t;
-        }
-
         /// <summary>
         /// Swaps elements of <paramref name="lo"/> and <paramref name="hi"/> where <paramref name="mask"/> is 1. 
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
         static void Swap(ref V lo, ref V hi, V mask) {
             var t = Avx2.BlendVariable(lo, hi, mask);
-            lo = Avx2.BlendVariable(lo, hi, Avx2.Xor(mask, Complement));
+            lo = Avx2.BlendVariable(hi, lo, mask);
             hi = t;
         }
 
@@ -128,7 +127,7 @@ namespace SortingNetworks
             var data = new int[16];
             for (int i = 0; i < 16; ++i) data[i] = i;
             fixed (int* p = data)
-                Sort(p);
+                Step(p);
         }
 
         public static bool IsSorted(int[] data) {

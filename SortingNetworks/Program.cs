@@ -7,6 +7,7 @@ namespace SortingNetworks
     {
         static void Main(string[] args) {
             Periodic16Ref.Test();
+            Periodic16Ref.Check();
         }
 
         static void Print(int[] a) {
