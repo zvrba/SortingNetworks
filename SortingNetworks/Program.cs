@@ -6,7 +6,9 @@ namespace SortingNetworks
     class Program
     {
         static void Main(string[] args) {
-            var summary = BenchmarkRunner.Run<SortBenchmark>();
+            Periodic16Ref.Check();
+            //var summary = BenchmarkRunner.Run<SortBenchmark>();
+            //Periodic16Ref.Check();
         }
 
 #if false

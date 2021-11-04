@@ -27,10 +27,16 @@ namespace SortingNetworks
         const int ShufRev4 = 0x1B;
 
         public static unsafe void Sort(int* data) {
-            Step(data);
-            Step(data);
-            Step(data);
-            Step(data);
+            var lo = Avx.LoadVector256(data);
+            var hi = Avx.LoadVector256(data + 8);
+
+            Step(ref lo, ref hi);
+            Step(ref lo, ref hi);
+            Step(ref lo, ref hi);
+            Step(ref lo, ref hi);
+
+            Avx.Store(data, lo);
+            Avx.Store(data + 8, hi);
         }
 
         /// <summary>
@@ -38,13 +44,10 @@ namespace SortingNetworks
         /// </summary>
         /// <param name="data"></param>
         [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
-        static unsafe void Step(int* data) {
+        static void Step(ref V lo, ref V hi) {
             V tmp1, tmp2;
 
             // lo, hi are intermediate results after each stage and input to next one.
-            var lo = Avx.LoadVector256(data);
-            var hi = Avx.LoadVector256(data + 8);
-
 
             // STAGE 1:
             // 76543210
@@ -87,9 +90,6 @@ namespace SortingNetworks
             tmp2 = Avx2.UnpackHigh(lo, hi);
             lo = Avx2.Permute2x128(tmp1, tmp2, 0x20);
             hi = Avx2.Permute2x128(tmp1, tmp2, 0x31);
-
-            Avx.Store(data, lo);
-            Avx.Store(data + 8, hi);
         }
 
         /// <summary>
@@ -126,8 +126,11 @@ namespace SortingNetworks
         public static unsafe void Test() {
             var data = new int[16];
             for (int i = 0; i < 16; ++i) data[i] = i;
-            fixed (int* p = data)
-                Step(p);
+            fixed (int* p = data) {
+                var lo = Avx.LoadVector256(p);
+                var hi = Avx.LoadVector256(p + 8);
+                Step(ref lo, ref hi);
+            }
         }
 
         public static bool IsSorted(int[] data) {
