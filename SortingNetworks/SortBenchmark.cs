@@ -7,10 +7,20 @@ namespace SortingNetworks
     public class SortBenchmark
     {
         readonly int[] data = new int[16];
-        readonly Random rng = new Random();
+        readonly AESRand rng = new AESRand();
+        Periodic16Expr sorter;
 
-        void Setup() {
-            for (int i = 0; i < 16; ++i) data[i] = rng.Next(256);
+        [GlobalSetup]
+        public void CreateNetwork() {
+            sorter = new Periodic16Expr();
+            rng.Initialize(1);
+        }
+
+        unsafe void Setup() {
+            fixed (int* p = data) {
+                for (int i = 0; i < 4; ++i)
+                    rng.Get4(p + 4 * i);
+            }
         }
 
         [Benchmark(Baseline = true)]
@@ -20,15 +30,22 @@ namespace SortingNetworks
 
         [Benchmark]
         public void ArraySort() {
-            Generate();
+            Setup();
             Array.Sort(data);
         }
 
         [Benchmark]
         public unsafe void NetworkSort() {
-            Generate();
+            Setup();
             fixed (int* p = data)
                 Periodic16Ref.Sort(p);
+        }
+
+        [Benchmark]
+        public unsafe void ExpressionSort() {
+            Setup();
+            fixed (int* p = data)
+                sorter.Sort(p);
         }
     }
 }

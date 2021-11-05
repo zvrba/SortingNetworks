@@ -61,7 +61,7 @@ namespace SortingNetworks
             var l = Expression.Lambda<RegisterSort>(
                 Expression.Block(new ParameterExpression[] { tmp1, tmp2, tmp3 }, steps),
                 new ParameterExpression[] { lo, hi });
-            sort = l.Compile();
+            sort = l.Compile(false);
         }
 
         public unsafe void Sort(int* data) {
