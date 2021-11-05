@@ -48,7 +48,6 @@ namespace SortingNetworks
         readonly ParameterExpression tmp2;
         readonly ParameterExpression tmp3;
 
-        public unsafe delegate void Sorter(int* data);
         public Sorter Sort { get; private set; }
 
         public Periodic16Expr() {

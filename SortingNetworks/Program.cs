@@ -5,8 +5,8 @@ namespace SortingNetworks
 {
     class Program
     {
-        static void Main(string[] args) {
-            Periodic16Ref.Check();
+        static unsafe void Main(string[] args) {
+            Validation.Check(Periodic16Ref.Sort);
             //var summary = BenchmarkRunner.Run<SortBenchmark>();
             //Periodic16Ref.Check();
         }

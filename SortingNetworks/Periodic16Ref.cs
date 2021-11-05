@@ -26,6 +26,10 @@ namespace SortingNetworks
 
         const int ShufRev4 = 0x1B;
 
+        /// <summary>
+        /// In-place sorting of 16 elements starting at <paramref name="data"/>.
+        /// </summary>
+        /// <param name="data"></param>
         public static unsafe void Sort(int* data) {
             var lo = Avx.LoadVector256(data);
             var hi = Avx.LoadVector256(data + 8);
@@ -37,6 +41,19 @@ namespace SortingNetworks
 
             Avx.Store(data, lo);
             Avx.Store(data + 8, hi);
+        }
+
+        /// <summary>
+        /// Test method for debugging instruction sequences.
+        /// </summary>
+        public static unsafe void Test() {
+            var data = new int[16];
+            for (int i = 0; i < 16; ++i) data[i] = i;
+            fixed (int* p = data) {
+                var lo = Avx.LoadVector256(p);
+                var hi = Avx.LoadVector256(p + 8);
+                Step(ref lo, ref hi);
+            }
         }
 
         /// <summary>
@@ -100,44 +117,6 @@ namespace SortingNetworks
             var t = Avx2.BlendVariable(lo, hi, mask);
             lo = Avx2.BlendVariable(hi, lo, mask);
             hi = t;
-        }
-
-        /// <summary>
-        /// Validates <see cref="Sort(int*)"/> by exploiting theorem Z of section 5.3.4: it is
-        /// sufficient to check that all 0-1 sequences (2^16 of them) are sorted by the network.
-        /// </summary>
-        public static unsafe void Check() {
-            var bits = new int[16];
-            
-            fixed (int* b = bits) {
-                for (int i = 0; i < 1 << 16; ++i) {
-                    for (int j = i, k = 0; k < 16; ++k, j >>= 1)
-                        bits[k] = j & 1;
-                    Sort(b);
-                    if (!IsSorted(bits))
-                        throw new InvalidOperationException($"Sorting failed for bit pattern {i:X4}.");
-                }
-            }
-        }
-
-        /// <summary>
-        /// Test method for debugging instruction sequences.
-        /// </summary>
-        public static unsafe void Test() {
-            var data = new int[16];
-            for (int i = 0; i < 16; ++i) data[i] = i;
-            fixed (int* p = data) {
-                var lo = Avx.LoadVector256(p);
-                var hi = Avx.LoadVector256(p + 8);
-                Step(ref lo, ref hi);
-            }
-        }
-
-        public static bool IsSorted(int[] data) {
-            for (int i = 1; i < data.Length; ++i)
-                if (data[i] < data[i - 1])
-                    return false;
-            return true;
         }
     }
 }
