@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Runtime.Intrinsics;
@@ -16,6 +15,7 @@ namespace SortingNetworks
     /// </summary>
     class Periodic16Expr
     {
+        unsafe delegate void RegisterSort(ref V lo, ref V hi);
 
         static readonly Type TAVX = typeof(Avx);
         static readonly Type TAVX2 = typeof(Avx2);
@@ -33,46 +33,52 @@ namespace SortingNetworks
             Avx2.ShiftLeftLogical(Complement.AsInt64(), 32)
         ).AsInt32();
 
-        static readonly MethodInfo LoadVector256 = TAVX.GetMethod("LoadVector256", new Type[] { typeof(int*) });
         static readonly MethodInfo Shuffle = TAVX2.GetMethod("Shuffle", new Type[] { TV, typeof(byte) });
         static readonly MethodInfo BlendVariable = TAVX2.GetMethod("BlendVariable", new Type[] { TV, TV, TV });
-        static readonly MethodInfo Permute2x128 = TAVX2.GetMethod("Permute2x128", new Type[] { TV, typeof(byte) });
+        static readonly MethodInfo Permute2x128 = TAVX2.GetMethod("Permute2x128", new Type[] { TV, TV, typeof(byte) });
         static readonly MethodInfo CompareGreaterThan = TAVX2.GetMethod("CompareGreaterThan", new Type[] { TV, TV });
         static readonly MethodInfo UnpackLow = TAVX2.GetMethod("UnpackLow", new Type[] { TV, TV });
         static readonly MethodInfo UnpackHigh = TAVX2.GetMethod("UnpackHigh", new Type[] { TV, TV });
 
-        readonly ParameterExpression data;
         readonly ParameterExpression lo;
         readonly ParameterExpression hi;
         readonly ParameterExpression tmp1;
         readonly ParameterExpression tmp2;
         readonly ParameterExpression tmp3;
-
-        public Sorter Sort { get; private set; }
+        readonly RegisterSort sort;
 
         public Periodic16Expr() {
-            data = Expression.Parameter(typeof(int*), "data");
-            lo = Expression.Parameter(TV, "lo");
-            hi = Expression.Parameter(TV, "hi");
-            tmp1 = Expression.Parameter(TV, "tmp1");
-            tmp2 = Expression.Parameter(TV, "tmp2");
-            tmp3 = Expression.Parameter(TV, "tmp3");
-            var step = Step();
+            lo = Expression.Parameter(TV.MakeByRefType(), "lo");
+            hi = Expression.Parameter(TV.MakeByRefType(), "hi");
+            tmp1 = Expression.Variable(TV, "tmp1");
+            tmp2 = Expression.Variable(TV, "tmp2");
+            tmp3 = Expression.Variable(TV, "tmp3");
 
+            var steps = new List<Expression>();
+            for (int i = 0; i < 4; ++i)
+                steps.AddRange(Step());
+
+            var l = Expression.Lambda<RegisterSort>(
+                Expression.Block(new ParameterExpression[] { tmp1, tmp2, tmp3 }, steps),
+                new ParameterExpression[] { lo, hi });
+            sort = l.Compile();
         }
 
-        private BlockExpression Step() {
-            var es = new List<Expression>();
+        public unsafe void Sort(int* data) {
+            var lo = Avx.LoadVector256(data);
+            var hi = Avx.LoadVector256(data + 8);
+            sort(ref lo, ref hi);
+            Avx.Store(data, lo);
+            Avx.Store(data + 8, hi);
+        }
 
-            es.AddRange(new Expression[] { 
-                Expression.Assign(lo, Expression.Call(LoadVector256, data)),
-                Expression.Assign(hi, Expression.Call(LoadVector256, Expression.Add(data, Expression.Constant(8))))
-            });
+        private List<Expression> Step() {
+            var es = new List<Expression>();
 
             // STAGE1
 
             es.AddRange(new Expression[] {
-                Expression.Assign(tmp1, Expression.Call(Shuffle, Expression.Constant((byte)0x1B))),
+                Expression.Assign(tmp1, Expression.Call(Shuffle, hi, Expression.Constant((byte)0x1B))),
                 Expression.Assign(hi, Expression.Call(Permute2x128, tmp1, tmp1, Expression.Constant((byte)1))),
                 Expression.Assign(tmp1, Expression.Call(CompareGreaterThan, hi, lo))
             });
@@ -116,7 +122,7 @@ namespace SortingNetworks
                 Expression.Assign(hi, Expression.Call(Permute2x128, tmp1, tmp2, Expression.Constant((byte)0x31)))
             });
 
-            return Expression.Block(new ParameterExpression[] { tmp1, tmp2, tmp3 }, es);
+            return es;
         }
 
         private Expression[] Swap(ParameterExpression lo, ParameterExpression hi, Expression mask) {
