@@ -10,7 +10,7 @@ namespace SortingNetworks
     /// <summary>
     /// Reference implementation of 16-element periodic sorting network.
     /// </summary>
-    static class Periodic16Ref
+    static class Periodic16Branchless
     {
         // All zeros
         static readonly V Zero = Vector256.Create(0);

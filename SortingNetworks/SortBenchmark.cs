@@ -42,7 +42,7 @@ namespace SortingNetworks
         public unsafe void NetworkSort() {
             Setup();
             fixed (int* p = data)
-                Periodic16Ref.Sort(p);
+                Periodic16Branchless.Sort(p);
             if (!Validation.IsSorted(data))
                 throw new InvalidOperationException("Unsorted.");
         }

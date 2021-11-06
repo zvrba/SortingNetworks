@@ -6,10 +6,10 @@ namespace SortingNetworks
     class Program
     {
         static unsafe void Main(string[] args) {
-            //Validation.Check(Periodic16Ref.Sort);
+            Validation.Check(Periodic16Branchless.Sort);
 
-//var es = new Periodic16Expr();
-//Validation.Check(es.Sort);
+            //var es = new Periodic16Expr();
+            //Validation.Check(es.Sort);
 
 #if false
             MWC1616Rand rand = new MWC1616Rand();
@@ -23,7 +23,11 @@ namespace SortingNetworks
                 Console.WriteLine("{0:X8} {1:X8} {2:X8} {3:X8}", data[0], data[1], data[2], data[3]);
             }
 #endif
-            var summary = BenchmarkRunner.Run<SortBenchmark>();
+            var z = new SortBenchmark();
+            z.Initialize();
+            z.NetworkSort();
+
+            //var summary = BenchmarkRunner.Run<SortBenchmark>();
             //Periodic16Ref.Check();
         }
 
