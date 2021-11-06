@@ -7,13 +7,13 @@ namespace SortingNetworks
     public class SortBenchmark
     {
         readonly int[] data = new int[16];
-        readonly AESRand rng = new AESRand();
+        readonly MWC1616Rand rng = new MWC1616Rand();
         Periodic16Expr sorter;
 
         [GlobalSetup]
         public void CreateNetwork() {
             sorter = new Periodic16Expr();
-            rng.Initialize(1);
+            rng.Initialize(new int[8] { 3141, 592, 6535, 8979, 141, 173, 2236, 271828 });
         }
 
         unsafe void Setup() {
@@ -41,11 +41,14 @@ namespace SortingNetworks
                 Periodic16Ref.Sort(p);
         }
 
+        // Omitted, compiled expressions have higher overhead than directly compiled code.
+#if false
         [Benchmark]
         public unsafe void ExpressionSort() {
             Setup();
             fixed (int* p = data)
                 sorter.Sort(p);
         }
+#endif
     }
 }
