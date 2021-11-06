@@ -26,12 +26,16 @@ namespace SortingNetworks
         [Benchmark(Baseline = true)]
         public unsafe void Generate() {
             Setup();
+            if (Validation.IsSorted(data))  // Negligible probability of happenning.
+                throw new InvalidOperationException("Sorted.");
         }
 
         [Benchmark]
         public void ArraySort() {
             Setup();
             Array.Sort(data);
+            if (!Validation.IsSorted(data))
+                throw new InvalidOperationException("Unsorted.");
         }
 
         [Benchmark]
@@ -39,6 +43,8 @@ namespace SortingNetworks
             Setup();
             fixed (int* p = data)
                 Periodic16Ref.Sort(p);
+            if (!Validation.IsSorted(data))
+                throw new InvalidOperationException("Unsorted.");
         }
 
         // Omitted, compiled expressions have higher overhead than directly compiled code.
