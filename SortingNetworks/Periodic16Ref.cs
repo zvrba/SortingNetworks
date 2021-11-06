@@ -24,8 +24,6 @@ namespace SortingNetworks
             Avx2.ShiftLeftLogical(Complement.AsInt64(), 32)
         ).AsInt32();
 
-        const int ShufRev4 = 0x1B;
-
         /// <summary>
         /// In-place sorting of 16 elements starting at <paramref name="data"/>.
         /// </summary>
@@ -70,7 +68,7 @@ namespace SortingNetworks
             // 76543210
             // 89ABCDEF
 
-            tmp1 = Avx2.Shuffle(hi, ShufRev4);          // CDEF89AB
+            tmp1 = Avx2.Shuffle(hi, 0x1B);              // CDEF89AB
             hi = Avx2.Permute2x128(tmp1, tmp1, 1);      // 89ABCDEF
             Swap(ref lo, ref hi, Avx2.CompareGreaterThan(hi, lo));
 
@@ -79,7 +77,7 @@ namespace SortingNetworks
             // CDEF4567
 
             tmp1 = Avx2.Permute2x128(lo, hi, 0x31);     // 89AB7654
-            tmp1 = Avx2.Shuffle(tmp1, ShufRev4);        // BA984567
+            tmp1 = Avx2.Shuffle(tmp1, 0x1B);            // BA984567
             lo = Avx2.Permute2x128(lo, tmp1, 0x30);     // BA983210
             hi = Avx2.Permute2x128(hi, tmp1, 0x02);     // CDEF4567
             Swap(ref lo, ref hi, Avx2.CompareGreaterThan(hi, lo));
