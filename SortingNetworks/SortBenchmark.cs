@@ -7,13 +7,13 @@ namespace SortingNetworks
     public class SortBenchmark
     {
         readonly int[] data = new int[16];
-        readonly MWC1616Rand rng = new MWC1616Rand();
+        MWC1616Rand rng = new MWC1616Rand();
         Periodic16Expr sorter;
 
         [GlobalSetup]
-        public void CreateNetwork() {
-            sorter = new Periodic16Expr();
+        public void Initialize() {
             rng.Initialize(new int[8] { 3141, 592, 6535, 8979, 141, 173, 2236, 271828 });
+            sorter = new Periodic16Expr();
         }
 
         unsafe void Setup() {
