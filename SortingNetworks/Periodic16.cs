@@ -12,33 +12,25 @@ namespace SortingNetworks
     /// Sorting Network", JACM Vol. 36, No. 4, October 1989, pp. 738-757.  This implementation is NOT branchless, but performs
     /// fewer operations.  Comments in the code reflect the names from the paper.
     /// </summary>
-    static class Periodic16
+    class Periodic16
     {
-        // All zeros
-        static readonly V Zero = V.Zero;
+        readonly V Zero;                    // All zeros
+        readonly V Complement;              // All ones
+        readonly V AlternatingMaskHi128;    // FFFF0000
+        readonly V AlternatingMaskLo128;    // 0000FFFF
+        readonly V AlternatingMaskHi64;     // FF00FF00
+        readonly V AlternatingMaskLo32;     // F0F0F0F0
 
-        // All ones
-        static readonly V Complement = Avx2.CompareEqual(Zero, Zero);
+        public Periodic16() {
+            Zero = V.Zero;
+            Complement = Avx2.CompareEqual(Zero, Zero);
+            AlternatingMaskHi128 = Vector256.Create(0L, 0L, -1L, -1L).AsInt32();
+            AlternatingMaskLo128 = Vector256.Create(-1L, -1L, 0L, 0L).AsInt32();
+            AlternatingMaskHi64 = Avx2.Xor(Complement, Avx2.ShiftRightLogical128BitLane(Complement, 8));
+            AlternatingMaskLo32 = Avx2.Xor(Complement.AsInt64(), Avx2.ShiftLeftLogical(Complement.AsInt64(), 32)).AsInt32();
+        }
 
-        // FFFF0000
-        static readonly V AlternatingMaskHi128 = Vector256.Create(0L, 0L, -1L, -1L).AsInt32();
-
-        // 0000FFFF
-        static readonly V AlternatingMaskLo128 = Vector256.Create(-1L, -1L, 0L, 0L).AsInt32();
-        
-        // FF00FF00 (1 digit = 32 bits)
-        static readonly V AlternatingMaskHi64 = Avx2.Xor(
-            Complement,
-            Avx2.ShiftRightLogical128BitLane(Complement, 8));
-        
-        // F0F0F0F0
-        static readonly V AlternatingMaskLo32 = Avx2.Xor(
-            Complement.AsInt64(),
-            Avx2.ShiftLeftLogical(Complement.AsInt64(), 32)
-        ).AsInt32();
-
-
-        public static unsafe void Sort(int* data) {
+        public unsafe void Sort(int* data) {
             var lo = Avx.LoadVector256(data);
             var hi = Avx.LoadVector256(data + 8);
 
@@ -59,7 +51,7 @@ namespace SortingNetworks
         /// <param name="lo">Low half of elements to sort.</param>
         /// <param name="hi">High half of elements to sort.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
-        public static void Block(int p, ref V lo, ref V hi) {
+        public void Block(int p, ref V lo, ref V hi) {
             V tmp1, tmp2;
 
             // INPUT:

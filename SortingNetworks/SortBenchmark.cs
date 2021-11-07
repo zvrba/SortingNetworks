@@ -8,12 +8,14 @@ namespace SortingNetworks
     {
         readonly int[] data = new int[16];
         MWC1616Rand rng = new MWC1616Rand();
-        Periodic16Expr sorter;
+        Periodic16Expr exprsorter;
+        Periodic16 periodic16;
 
         [GlobalSetup]
         public void Initialize() {
             rng.Initialize(new int[8] { 3141, 592, 6535, 8979, 141, 173, 2236, 271828 });
-            sorter = new Periodic16Expr();
+            exprsorter = new Periodic16Expr();
+            periodic16 = new Periodic16();
         }
 
         unsafe void Setup() {
@@ -39,10 +41,19 @@ namespace SortingNetworks
         }
 
         [Benchmark]
-        public unsafe void NetworkSort() {
+        public unsafe void Periodic16BranchlessSort() {
             Setup();
             fixed (int* p = data)
                 Periodic16Branchless.Sort(p);
+            if (!Validation.IsSorted(data))
+                throw new InvalidOperationException("Unsorted.");
+        }
+
+        [Benchmark]
+        public unsafe void Periodic16Sort() {
+            Setup();
+            fixed (int* p = data)
+                periodic16.Sort(p);
             if (!Validation.IsSorted(data))
                 throw new InvalidOperationException("Unsorted.");
         }
