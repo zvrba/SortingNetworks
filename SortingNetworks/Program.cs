@@ -1,4 +1,6 @@
 ﻿using System;
+
+using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Running;
 
 namespace SortingNetworks
@@ -24,8 +26,11 @@ namespace SortingNetworks
                 Console.WriteLine("{0:X8} {1:X8} {2:X8} {3:X8}", data[0], data[1], data[2], data[3]);
             }
 #endif
+            var config = ManualConfig.Create(DefaultConfig.Instance)
+                    .WithOptions(ConfigOptions.StopOnFirstError);
 
-            var summary = BenchmarkRunner.Run<SortBenchmark>();
+            var s = BenchmarkRunner.Run(typeof(Program).Assembly, config);
+
             //Periodic16Ref.Check();
         }
 
