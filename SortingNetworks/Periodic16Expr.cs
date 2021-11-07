@@ -13,7 +13,7 @@ namespace SortingNetworks
     /// Builds an expression for periodic sorting network, TAOCP3, section 5.3.4, exercise 53.
     /// The network is hard-coded to 16 elements.
     /// </summary>
-    class Periodic16Expr
+    public class Periodic16Expr
     {
         unsafe delegate void RegisterSort(ref V lo, ref V hi);
 

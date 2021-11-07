@@ -8,9 +8,9 @@ namespace SortingNetworks
     using V = System.Runtime.Intrinsics.Vector256<int>;
 
     /// <summary>
-    /// Reference implementation of 16-element periodic sorting network.
+    /// Reference, branchless implementation of 16-element periodic sorting network.
     /// </summary>
-    static class Periodic16Branchless
+    public static class Periodic16Branchless
     {
         // All zeros
         static readonly V Zero = Vector256.Create(0);

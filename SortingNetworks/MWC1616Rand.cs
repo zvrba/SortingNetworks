@@ -8,7 +8,7 @@ namespace SortingNetworks
     /// Random number generator using MWC1616 (multiply with carry) algorithm.
     /// Code adapted from http://www.digicortex.net/node/22
     /// </summary>
-    struct MWC1616Rand : IUnsafeRandom
+    public struct MWC1616Rand : IUnsafeRandom
     {
         // Single array so that we can pin it only once.
 

@@ -8,7 +8,7 @@ namespace SortingNetworks
     /// Random number generation using AES-NI instructions.  NB! Single round, as in this implementation, seems to "mix" badly.
     /// Code adapted from https://github.com/dragontamer/AESRand/blob/master/AESRand/AESRand/AESRand.cpp
     /// </summary>
-    struct AESRand : IUnsafeRandom {
+    public struct AESRand : IUnsafeRandom {
         static readonly Vector128<ulong> PRIME_INCREMENT = Vector128.Create(
             0x2f, 0x2b, 0x29, 0x25, 0x1f, 0x1d, 0x17, 0x13,
             0x11, 0x0D, 0x0B, 0x07, 0x05, 0x03, 0x02, 0x01).AsUInt64();

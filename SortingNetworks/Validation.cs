@@ -4,14 +4,14 @@ using System.Runtime.Intrinsics.X86;
 namespace SortingNetworks
 {
     /// <summary>
-    /// Delegate type returned by compiling a network expression to lambda.
+    /// Unsafe delegate type for an in-place sorting method.
     /// </summary>
     public unsafe delegate void Sorter(int* data);
 
     /// <summary>
     /// Debugging and validation methods.
     /// </summary>
-    static class Validation
+    public static class Validation
     {
         /// <summary>
         /// Validates <paramref name="sort"/> by exploiting theorem Z of TAOCOP section 5.3.4: it is

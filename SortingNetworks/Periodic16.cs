@@ -12,7 +12,7 @@ namespace SortingNetworks
     /// Sorting Network", JACM Vol. 36, No. 4, October 1989, pp. 738-757.  This implementation is NOT branchless, but performs
     /// fewer operations.  Comments in the code reflect the names from the paper.
     /// </summary>
-    class Periodic16
+    public class Periodic16
     {
         readonly V Zero;                    // All zeros
         readonly V Complement;              // All ones

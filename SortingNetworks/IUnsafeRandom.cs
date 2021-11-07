@@ -8,7 +8,7 @@ namespace SortingNetworks
     /// Methods for high-performance random number generation.  This interface exists because using <c>System.Random</c>
     /// during benchmarking unveals a bimodal timing distribution, which makes a rather bad baseline.
     /// </summary>
-    interface IUnsafeRandom
+    public interface IUnsafeRandom
     {
         /// <summary>
         /// Initializes the generator.
