@@ -6,7 +6,7 @@ than `Array.Sort()`; see benchmarks below.
 ## Project structure
 
 `SortingNetworks` project is the main code and has no dependencies.  The high-performance public types use `unsafe`
-code and can only be used from `unsafe` blocks.  The code depends on AVX2 instruction set.  In addition, `AESRand`
+code and can only be used from `unsafe` methods.  The code depends on AVX2 instruction set.  In addition, `AESRand`
 class depends on AES-NI instruction set.
 
 `SNBenchmark` project contains the benchmarks and dependes on BenchmarkDotNet.
@@ -23,9 +23,11 @@ are generated.  My guess is that these ensure thread-safe, once-only static init
 Passing parameters by `ref` as in `Periodics16Branchless` generates a lot of load/store instructions.
 It is much more efficient to load ref parameters into locals at the beginning of the procedure and store
 results at the end, as in `Periodic16`.  The generated assembly is lean and mean, no extra operations.
+Even the call to `Swap` is inlined.
 
 `Periodic16Expr` demonstrates how to build a sorter with expression trees.  The generated assembly is OK,
-but the overhead of calling a lambda compiled at run-time is way too big.
+save for the long prologue/epilogue sequences  This makes the overhead of calling a lambda compiled at run-time
+way too big for this application.
 
 `unsafe` is not viral: Method `A` is allowed to call `unsafe` method `B` without `A` having to be marked
 unsafe as well.
@@ -36,6 +38,9 @@ Therefore `IUnsafeRandom`, `AESRand` and `MWC1616Rand` classes were implemented.
 AES with a single round seems to generate obvious patterns.
 
 # Benchmarks
+
+Observed anomaly: sorting network is data-oblivious and always runs the same number of operations for a vector of
+the given size.  Yet, sorted and reverse-sorted inputs run significantly faster than random inputs.
 
 # References
 
