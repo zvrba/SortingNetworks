@@ -30,6 +30,10 @@ namespace SortingNetworks
             }
         }
 
+        /// <summary>
+        /// Checks whether array <paramref name="data"/> is sorted.
+        /// </summary>
+        /// <returns>True if the input is sorted, false otherwise.</returns>
         public static bool IsSorted(int[] data) {
             for (int i = 1; i < data.Length; ++i)
                 if (data[i] < data[i - 1])

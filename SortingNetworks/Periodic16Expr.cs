@@ -10,7 +10,7 @@ namespace SortingNetworks
     using V = System.Runtime.Intrinsics.Vector256<int>;
 
     /// <summary>
-    /// Builds an expression for periodic sorting network, TAOCP3, section 5.3.4, exercise 53.
+    /// Builds an expression for periodic sorting network as compiled lambda.
     /// The network is hard-coded to 16 elements.
     /// </summary>
     public class Periodic16Expr

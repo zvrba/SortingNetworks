@@ -8,9 +8,9 @@ namespace SortingNetworks
     using V = Vector256<int>;
 
     /// <summary>
-    /// 16-element periodic sorting network with optimization described after Theorem 2 in Dowd et al.: "The Periodic Balanced
-    /// Sorting Network", JACM Vol. 36, No. 4, October 1989, pp. 738-757.  This implementation is NOT branchless, but performs
-    /// fewer operations.  Comments in the code reflect the names from the paper.
+    /// 16-element periodic sorting network with optimization described after Theorem 2 in Dowd et al.
+    /// This implementation is NOT branchless, but performs fewer operations.  Comments in the code reflect
+    /// the names from the paper.
     /// </summary>
     public class Periodic16
     {
