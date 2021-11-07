@@ -48,10 +48,11 @@ namespace SortingNetworks
         /// are ordered from least to most significant bits.
         /// </summary>
         /// <param name="p">Phase to stop at; must be 1, 2, 3 or 4.  Unchecked; 4 or any other value will run the whole block.</param>
-        /// <param name="lo">Low half of elements to sort.</param>
-        /// <param name="hi">High half of elements to sort.</param>
+        /// <param name="_lo">Low half of elements to sort.</param>
+        /// <param name="_hi">High half of elements to sort.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
-        public void Block(int p, ref V lo, ref V hi) {
+        public void Block(int p, ref V _lo, ref V _hi) {
+            V lo = _lo, hi = _hi;                       // Stack-allocated to eliminate unnecessary loads/stores to refs
             V tmp1, tmp2;
 
             // INPUT:
@@ -69,6 +70,7 @@ namespace SortingNetworks
             if (p == 1) {
                 hi = Avx2.Permute2x128(hi, hi, 0x01);
                 hi = Avx2.Shuffle(hi, 0x1B);
+                _lo = lo; _hi = hi;
                 return;
             }
 
@@ -86,6 +88,7 @@ namespace SortingNetworks
                 tmp1 = Avx2.Permute2x128(lo, hi, 0x21); // 7654BA98
                 Swap(ref lo, ref tmp1, AlternatingMaskLo128);
                 Swap(ref hi, ref tmp1, AlternatingMaskHi128);
+                _lo = lo; _hi = hi;
                 return;
             }
 
@@ -122,6 +125,7 @@ namespace SortingNetworks
         fixup:
             lo = Avx2.Permute2x128(tmp1, tmp2, 0x20);
             hi = Avx2.Permute2x128(tmp1, tmp2, 0x31);
+            _lo = lo; _hi = hi;
         }
 
         /// <summary>
