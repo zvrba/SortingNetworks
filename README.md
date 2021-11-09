@@ -9,7 +9,10 @@ than `Array.Sort()`; see benchmarks below.
 code and can only be used from `unsafe` methods.  The code depends on AVX2 instruction set.  In addition, `AESRand`
 class depends on AES-NI instruction set.
 
-`SNBenchmark` project contains the benchmarks and dependes on BenchmarkDotNet.
+`SNBenchmark` project contains the benchmarks and dependes on BenchmarkDotNet.  The main program exhaustively validates
+`Periodic16` sorter.  This is not possible for larger networks as `2^N` zero/one inputs would have to be tested.  Benchmarks
+call `Environment.FailFast` if the result is found to be unsorted, but this is of little assurance: by another theorem
+in TAOCP, there exist "almost correct" networks that sort _every but one_ input.
 
 ## Lessons learned
 These were learned by inspecting the generated assembly code in Release mode.
@@ -34,13 +37,18 @@ unsafe as well.
 
 `System.Random` does not have consistent timing: when used in the baseline benchmark, the results almost always
 contained a warning about it having a bimodal distribution.  This makes it rather unusable in baseline benchmarks.
-Therefore `IUnsafeRandom`, `AESRand` and `MWC1616Rand` classes were implemented.  Of these, only MWC is being used;
-AES with a single round seems to generate obvious patterns.
+Therefore `UnsafeRandom`, `AESRand` and `MWC1616Rand` classes were implemented.  Of these, only MWC is being used.
 
 # Benchmarks
 
 Observed anomaly: sorting network is data-oblivious and always runs the same number of operations for a vector of
-the given size.  Yet, sorted and reverse-sorted inputs run significantly faster than random inputs.
+the given size.  Yet, sorted and reverse-sorted inputs run significantly faster than random inputs.  The following
+tables show "raw" results.
+
+The tables below show adjusted relative results: from each mean result above, the mean of "Baseline" benchmark is
+subtracted and new results calculatd.  I couldn't figure out how to coerce BenchmarkDotNet into treating the baseline
+as additive overhead instead of, well, _baseline_.  (Actually, that's what `[IterationSetup]` and `[IterationCleanup]`
+are for, but they come with a warning that they could spoil results of microbenchmarks.)
 
 # References
 
