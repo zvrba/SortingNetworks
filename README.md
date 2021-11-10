@@ -39,6 +39,14 @@ unsafe as well.
 contained a warning about it having a bimodal distribution.  This makes it rather unusable in baseline benchmarks.
 Therefore `UnsafeRandom`, `AESRand` and `MWC1616Rand` classes were implemented.  Of these, only MWC is being used.
 
+Generics suck for numeric code.  I couldn't figure out how to write a generic `bool IsSorted(T[])` method that'd
+work for any numeric type.  Adding `where T : unmanaged` doesn't help as the compiler doesn't know that unmanaged
+types are comparable with less-than and equal.  Nor does it seem possible to write `void Iota(T[] data)` that'd
+fill `data` with numbers from `0 .. Length-1`.
+
+I attempted to make concrete benchmark classes `sealed`, but that makes BenchmarkDotNet fail because it apparently
+needs to derive from the benchmark class.
+
 # Benchmarks
 
 Observed anomaly: sorting network is data-oblivious and always runs the same number of operations for a vector of

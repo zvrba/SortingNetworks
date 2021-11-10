@@ -55,7 +55,7 @@ namespace SortingNetworks
             var v = Get4();
             // Keep 23 MSB bits of the random integer and convert to [1.0,2.0)
             v = Sse2.Or(Sse2.ShiftRightLogical(v, 9), oneMask);
-            var f = Sse2.Subtract(v.AsSingle(), one);
+            var f = Sse.Subtract(v.AsSingle(), one);
             Sse.Store(data, f);
         }
     }

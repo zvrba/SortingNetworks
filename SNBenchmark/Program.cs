@@ -12,12 +12,14 @@ namespace SNBenchmark
             var periodic16 = new SortingNetworks.Periodic16();
             SortingNetworks.Validation.Check(periodic16.Sort);
 
-            TestMWC1616Rand();
+            var z = new FloatRandUBenchmark();
+            z.NetworkSort();
 
             var config = ManualConfig.Create(DefaultConfig.Instance)
-                    .WithOptions(ConfigOptions.StopOnFirstError);
+                    .WithOptions(ConfigOptions.StopOnFirstError | ConfigOptions.JoinSummary);
 
-            var s = BenchmarkRunner.Run(typeof(Program).Assembly, config);
+            //var s = BenchmarkRunner.Run(typeof(Program).Assembly, config);
+            var s = BenchmarkRunner.Run<FloatRandUBenchmark>();
         }
 
         static unsafe void TestAESRand() {
