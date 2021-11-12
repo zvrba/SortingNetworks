@@ -1,6 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
+using System.Runtime.Intrinsics;
+using System.Runtime.Intrinsics.X86;
 
 namespace SortingNetworks
 {
@@ -15,13 +15,12 @@ namespace SortingNetworks
         /// </summary>
         public static readonly NetworkSort Instance = new NetworkSort();
 
+        readonly PeriodicInt periodicInt = new PeriodicInt();
+
         private NetworkSort() {
 
         }
 
 
-        public unsafe void Sort16(int* data) {
-
-        }
     }
 }

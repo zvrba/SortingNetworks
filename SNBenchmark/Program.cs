@@ -9,13 +9,19 @@ namespace SNBenchmark
     {
         static void Main(string[] args) {
             // Exhaustive validation of the 16-element block.
-            var periodic16 = new SortingNetworks.Periodic16();
-            SortingNetworks.Validation.Check(periodic16.Sort);
+            var periodic16 = new SortingNetworks.PeriodicInt();
+            SortingNetworks.Validation.Check(periodic16.Sort16);
+
+#if true
+            var z = new IntRandBenchmark32();
+            z.NetworkSort();
+#endif
 
             var config = ManualConfig.Create(DefaultConfig.Instance)
                     .WithOptions(ConfigOptions.StopOnFirstError | ConfigOptions.JoinSummary);
 
-            var s = BenchmarkRunner.Run(typeof(Program).Assembly, config);
+            //var s = BenchmarkRunner.Run(typeof(Program).Assembly, config);
+            var s = BenchmarkRunner.Run<IntRandBenchmark32>();
         }
 
         static unsafe void TestAESRand() {
