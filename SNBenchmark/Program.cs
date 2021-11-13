@@ -8,10 +8,12 @@ namespace SNBenchmark
     unsafe class Program
     {
         static void Main(string[] args) {
-            var d = new int[] { 3, 2, 1, 0 };
-            var z = SortingNetworks.UnsafeSort<int>.CreateInt(4);
+            var z = SortingNetworks.UnsafeSort<int>.CreateInt(8);
+#if false
+            var d = new int[] { 0, 1, 2, 3, 4, 5, 6, 7 };
             fixed (int* p = d)
                 z.Sorter(p);
+#endif
             SortingNetworks.Validation.Check(z);
             Environment.Exit(0);
 

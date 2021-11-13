@@ -10,8 +10,31 @@ namespace SortingNetworks
     public partial class PeriodicInt2
     {
         /// <summary>
-        /// Block for sorting 2 independent vectors of 4 elements each.
+        /// Block for sorting one vector of 8 elements.
         /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
+        void Block_8_1(int p, ref V _v) {
+            V v0 = _v, v1, m;
+
+            // PHASE1:
+            // 76543210
+            // 01234567
+
+            v1 = Avx2.PermuteVar8x32(v0, ReversePermutation);
+            m = Avx2.CompareGreaterThan(v0, v1);
+            m = Avx2.Xor(m, AlternatingMaskHi128);
+            v0 = Avx2.BlendVariable(v0, v1, m);
+            if (p == 1)
+                goto done;
+
+            Block_4_2(p - 1, ref v0);
+        done:
+            _v = v0;
+        }
+
+        /// <summary>
+            /// Block for sorting 2 independent vectors of 4 elements each.
+            /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
         void Block_4_2(int p, ref V _v) {
             V v0 = _v, v1, m;

@@ -39,6 +39,8 @@ namespace SortingNetworks
             var p = new PeriodicInt2();
             if (length == 4)
                 return new UnsafeSort<int>(length, p.Sort4);
+            if (length == 8)
+                return new UnsafeSort<int>(length, p.Sort8);
 
             throw new ArgumentOutOfRangeException(nameof(length));
         }
