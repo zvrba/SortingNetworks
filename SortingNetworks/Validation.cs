@@ -1,31 +1,28 @@
 ﻿using System;
-using System.Runtime.Intrinsics.X86;
 
 namespace SortingNetworks
 {
     /// <summary>
-    /// Unsafe delegate type for an in-place sorting method.
-    /// </summary>
-    public unsafe delegate void IntSorter(int* data);
-
-    /// <summary>
-    /// Debugging and validation methods.
+    /// Validation methods for verifying output of a sorting network.
     /// </summary>
     public static class Validation
     {
         /// <summary>
         /// Validates <paramref name="sort"/> by exploiting theorem Z of TAOCOP section 5.3.4: it is
         /// sufficient to check that all 0-1 sequences (2^16 of them) are sorted by the network.
+        /// Only length of up to <c>2^28</c> are accepted.
         /// </summary>
-        public static unsafe void Check(IntSorter sort) {
-            var bits = new int[16];
+        public static unsafe void Check(UnsafeSort<int> sort) {
+            if (sort.Length > 28)
+                throw new ArgumentException($"The sorter's sequence length {sort.Length} is too large.  Max acceptable value is 28.");
+            var bits = new int[sort.Length];
             fixed (int* b = bits) {
-                for (int i = 0; i < 1 << 16; ++i) {
-                    for (int j = i, k = 0; k < 16; ++k, j >>= 1)
+                for (int i = 0; i < 1 << sort.Length; ++i) {
+                    for (int j = i, k = 0; k < sort.Length; ++k, j >>= 1)
                         bits[k] = j & 1;
-                    sort(b);
+                    sort.Sorter(b);
                     if (!IsSorted(bits))
-                        throw new InvalidOperationException($"Sorting failed for bit pattern {i:X4}.");
+                        throw new InvalidOperationException($"Sorting failed for bit pattern {i:X8}.");
                 }
             }
         }

@@ -8,9 +8,13 @@ namespace SNBenchmark
     unsafe class Program
     {
         static void Main(string[] args) {
-            // Exhaustive validation of the 16-element block.
-            var periodic16 = new SortingNetworks.PeriodicInt();
-            SortingNetworks.Validation.Check(periodic16.Sort16);
+            var d = new int[] { 3, 2, 1, 0 };
+            var z = SortingNetworks.UnsafeSort<int>.CreateInt(4);
+            fixed (int* p = d)
+                z.Sorter(p);
+            SortingNetworks.Validation.Check(z);
+            Environment.Exit(0);
+
 
 #if false
             var z = new IntRandBenchmark32();

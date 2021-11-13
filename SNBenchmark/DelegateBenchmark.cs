@@ -14,7 +14,7 @@ namespace SNBenchmark
         public unsafe DelegateBenchmark() {
             data = new int[16];
             direct = new SortingNetworks.PeriodicInt();
-            @delegate = new SortingNetworks.UnsafeSort<int>(16, direct.Sort16);
+            @delegate = SortingNetworks.UnsafeSort<int>.CreateInt(data.Length);
         }
 
 

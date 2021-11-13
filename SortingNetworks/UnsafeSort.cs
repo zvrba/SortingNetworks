@@ -30,10 +30,17 @@ namespace SortingNetworks
         /// </summary>
         public readonly Sorter<T> Sorter;
 
-        // TODO: make internal
-        public UnsafeSort(int length, Sorter<T> sort) {
+        private UnsafeSort(int length, Sorter<T> sort) {
             Length = length;
             Sorter = sort;
+        }
+
+        public static unsafe UnsafeSort<int> CreateInt(int length) {
+            var p = new PeriodicInt2();
+            if (length == 4)
+                return new UnsafeSort<int>(length, p.Sort4);
+
+            throw new ArgumentOutOfRangeException(nameof(length));
         }
     }
 }

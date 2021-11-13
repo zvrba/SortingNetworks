@@ -19,7 +19,6 @@ namespace SortingNetworks
         readonly V AlternatingMaskLo128;    // 0000FFFF
         readonly V AlternatingMaskHi64;     // FF00FF00
         readonly V AlternatingMaskLo32;     // F0F0F0F0
-        readonly V Max;                     // int.MaxValue in each element
 
         public PeriodicInt() {
             Zero = V.Zero;
@@ -28,7 +27,6 @@ namespace SortingNetworks
             AlternatingMaskLo128 = Vector256.Create(-1L, -1L, 0L, 0L).AsInt32();
             AlternatingMaskHi64 = Avx2.Xor(Complement, Avx2.ShiftRightLogical128BitLane(Complement, 8));
             AlternatingMaskLo32 = Avx2.Xor(Complement.AsInt64(), Avx2.ShiftLeftLogical(Complement.AsInt64(), 32)).AsInt32();
-            Max = Vector256.Create(int.MaxValue);
         }
 
         /// <summary>
