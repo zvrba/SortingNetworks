@@ -4,6 +4,9 @@ using System.Runtime.Intrinsics.X86;
 
 namespace SortingNetworks
 {
+    /// <summary>
+    /// Provides methods for fast, "unsafe" generation of integer or floating-point random numbers.
+    /// </summary>
     public abstract class UnsafeRandom
     {
         readonly Vector128<int> oneMask;

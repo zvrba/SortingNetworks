@@ -7,51 +7,42 @@ namespace SortingNetworks
 {
     using V = Vector256<int>;
 
-    /// <summary>
-    /// 16-element periodic sorting network with optimization described after Theorem 2 in Dowd et al.
-    /// This implementation is NOT branchless, but performs fewer operations.  Comments in the code reflect
-    /// the names from the paper.
-    /// </summary>
-    public class Periodic16
+    public partial class PeriodicInt
     {
-        readonly V Zero;                    // All zeros
-        readonly V Complement;              // All ones
-        readonly V AlternatingMaskHi128;    // FFFF0000
-        readonly V AlternatingMaskLo128;    // 0000FFFF
-        readonly V AlternatingMaskHi64;     // FF00FF00
-        readonly V AlternatingMaskLo32;     // F0F0F0F0
+        /// <summary>
+        /// Operations of a (potentially partial) 32-block.  The integers are ordered from the least significant element in
+        /// <paramref name="v0"/> to the most significant element in <paramref name="v3"/>.
+        /// </summary>
+        /// <param name="p">Phase to stop at; must be 1-5.</param>
+        [MethodImpl(MethodImplOptions.AggressiveOptimization)]
+        void Block32(int p, ref V _v0, ref V _v1, ref V _v2, ref V _v3) {
+            var v2 = Avx2.Permute2x128(_v2, _v2, 0x01);
+            var v3 = Avx2.Permute2x128(_v3, _v3, 0x01);
+            v2 = Avx2.Shuffle(v2, 0x1B);
+            v3 = Avx2.Shuffle(v3, 0x1B);
 
-        public Periodic16() {
-            Zero = V.Zero;
-            Complement = Avx2.CompareEqual(Zero, Zero);
-            AlternatingMaskHi128 = Vector256.Create(0L, 0L, -1L, -1L).AsInt32();
-            AlternatingMaskLo128 = Vector256.Create(-1L, -1L, 0L, 0L).AsInt32();
-            AlternatingMaskHi64 = Avx2.Xor(Complement, Avx2.ShiftRightLogical128BitLane(Complement, 8));
-            AlternatingMaskLo32 = Avx2.Xor(Complement.AsInt64(), Avx2.ShiftLeftLogical(Complement.AsInt64(), 32)).AsInt32();
-        }
+            Swap(ref _v0, ref v3, Avx2.CompareGreaterThan(v3, _v0));    // 0-7  : 31:24
+            Swap(ref _v1, ref v2, Avx2.CompareGreaterThan(v2, _v1));    // 8-15 : 23:16
 
-        public unsafe void Sort(int* data) {
-            var lo = Avx.LoadVector256(data);
-            var hi = Avx.LoadVector256(data + 8);
+            v2 = Avx2.Shuffle(v2, 0x1B);
+            v3 = Avx2.Shuffle(v3, 0x1B);
+            v2 = Avx2.Permute2x128(v2, v2, 0x01);
+            v3 = Avx2.Permute2x128(v3, v3, 0x01);
 
-            Block(2, ref lo, ref hi);
-            Block(3, ref lo, ref hi);
-            Block(4, ref lo, ref hi);
-            Block(4, ref lo, ref hi);
-
-            Avx.Store(data, lo);
-            Avx.Store(data + 8, hi);
+            Block16(p - 1, ref _v0, ref _v1);
+            Block16(p - 1, ref v2, ref v3);
+            _v2 = v2; _v3 = v3;
         }
 
         /// <summary>
-        /// Performs the operations in a single, potentially partial, block.  The integers in each half (vector parameter)
+        /// Performs the operations of a single, potentially partial, 16-block.  The integers in each half (vector parameter)
         /// are ordered from least to most significant bits.
         /// </summary>
         /// <param name="p">Phase to stop at; must be 1, 2, 3 or 4.  Unchecked; 4 or any other value will run the whole block.</param>
         /// <param name="_lo">Low half of elements to sort.</param>
         /// <param name="_hi">High half of elements to sort.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
-        public void Block(int p, ref V _lo, ref V _hi) {
+        void Block16(int p, ref V _lo, ref V _hi) {
             V lo = _lo, hi = _hi;                       // Stack-allocated to eliminate unnecessary loads/stores to refs
             V tmp1, tmp2;
 
@@ -122,7 +113,7 @@ namespace SortingNetworks
             tmp1 = Avx2.UnpackLow(lo, hi);
             tmp2 = Avx2.UnpackHigh(lo, hi);
 
-        fixup:
+            fixup:
             lo = Avx2.Permute2x128(tmp1, tmp2, 0x20);
             hi = Avx2.Permute2x128(tmp1, tmp2, 0x31);
             _lo = lo; _hi = hi;

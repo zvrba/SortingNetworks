@@ -6,7 +6,7 @@ namespace SortingNetworks
     /// <summary>
     /// Unsafe delegate type for an in-place sorting method.
     /// </summary>
-    public unsafe delegate void Sorter(int* data);
+    public unsafe delegate void IntSorter(int* data);
 
     /// <summary>
     /// Debugging and validation methods.
@@ -17,7 +17,7 @@ namespace SortingNetworks
         /// Validates <paramref name="sort"/> by exploiting theorem Z of TAOCOP section 5.3.4: it is
         /// sufficient to check that all 0-1 sequences (2^16 of them) are sorted by the network.
         /// </summary>
-        public static unsafe void Check(Sorter sort) {
+        public static unsafe void Check(IntSorter sort) {
             var bits = new int[16];
             fixed (int* b = bits) {
                 for (int i = 0; i < 1 << 16; ++i) {

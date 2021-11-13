@@ -12,16 +12,16 @@ namespace SNBenchmark
             var periodic16 = new SortingNetworks.PeriodicInt();
             SortingNetworks.Validation.Check(periodic16.Sort16);
 
-#if true
+#if false
             var z = new IntRandBenchmark32();
             z.NetworkSort();
 #endif
-
+            
             var config = ManualConfig.Create(DefaultConfig.Instance)
                     .WithOptions(ConfigOptions.StopOnFirstError | ConfigOptions.JoinSummary);
 
             //var s = BenchmarkRunner.Run(typeof(Program).Assembly, config);
-            var s = BenchmarkRunner.Run<IntRandBenchmark32>();
+            var s = BenchmarkRunner.Run<DelegateBenchmark>();
         }
 
         static unsafe void TestAESRand() {

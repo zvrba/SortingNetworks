@@ -3,6 +3,7 @@ using BenchmarkDotNet.Attributes;
 
 namespace SNBenchmark
 {
+#if false
     /// <summary>
     /// This is copy-paste of <see cref="IntBenchmarkBase"/> because it's next to impossible to write generic code over arrays.
     /// </summary>
@@ -41,7 +42,6 @@ namespace SNBenchmark
         }
     }
 
-#if false
 
     /// <summary>
     /// Benchmarks sorting floating point numbers in any range.

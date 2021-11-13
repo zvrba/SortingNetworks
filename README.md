@@ -49,6 +49,19 @@ needs to derive from the benchmark class.
 
 # Benchmarks
 
+Benchmarks were run on the following configuration:
+
+```
+BenchmarkDotNet=v0.13.1, OS=Windows 10.0.19042.1348 (20H2/October2020Update)
+Intel Core i7-8650U CPU 1.90GHz (Kaby Lake R), 1 CPU, 8 logical and 4 physical cores
+.NET SDK=5.0.303
+  [Host]     : .NET Core 3.1.21 (CoreCLR 4.700.21.51404, CoreFX 4.700.21.51508), X64 RyuJIT
+  DefaultJob : .NET Core 3.1.21 (CoreCLR 4.700.21.51404, CoreFX 4.700.21.51508), X64 RyuJIT
+```
+
+
+# Main results
+
 Observed anomaly: sorting network is data-oblivious and always runs the same number of operations for a vector of
 the given size.  Yet, sorted and reverse-sorted inputs run significantly faster than random inputs.  The following
 tables show "raw" results.
@@ -58,6 +71,18 @@ subtracted and new results calculatd.  I couldn't figure out how to coerce Bench
 as additive overhead instead of, well, _baseline_.  (Actually, that's what `[IterationSetup]` and `[IterationCleanup]`
 are for, but they come with a warning that they could spoil results of microbenchmarks.)
 
+## Direct vs delegate invocation
+
+There is no substantial difference between directly invoking an instance method and invoking it through a generic delegate.
+See `SNBenchmark/DelegateBenchmark.cs`.  A sample comparison:
+
+|         Method |     Mean |    Error |   StdDev |
+|--------------- |---------:|---------:|---------:|
+|   DirectInvoke | 55.70 ns | 1.035 ns | 1.192 ns |
+| DelegateInvoke | 55.42 ns | 0.884 ns | 0.738 ns |
+
+This is the main result driving the design of `UnsafeSort<T>`.
+
 # References
 
 D. E. Knuth, The Art of Computer Programming, vol. 3, section 5.3.4 for basic expositio. The ""periodic" network as
@@ -65,5 +90,3 @@ implemented here appears in TAOCP exercise 53, but has first been described by D
 Network", JACM Vol. 36, No. 4, October 1989, pp. 738-757.
 
 Other references appear in code comments.
-
-
