@@ -16,13 +16,24 @@ namespace SortingNetworks
             if (sort.Length > 28)
                 throw new ArgumentException($"The sorter's sequence length {sort.Length} is too large.  Max acceptable value is 28.");
             var bits = new int[sort.Length];
+            var c = new int[2];
+
             fixed (int* b = bits) {
                 for (int i = 0; i < 1 << sort.Length; ++i) {
-                    for (int j = i, k = 0; k < sort.Length; ++k, j >>= 1)
+                    for (int j = i, k = 0; k < sort.Length; ++k, j >>= 1) {
                         bits[k] = j & 1;
+                        ++c[j & 1];
+                    }
+                    
                     sort.Sorter(b);
+                    
                     if (!IsSorted(bits))
                         throw new InvalidOperationException($"Sorting failed for bit pattern {i:X8}.");
+
+                    foreach (var bit in bits)
+                        --c[bit];
+                    if (c[0] != 0 || c[1] != 0)
+                        throw new InvalidOperationException($"Result is not a permutation for bit pattern {i:X8}.");
                 }
             }
         }
