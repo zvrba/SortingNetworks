@@ -36,6 +36,29 @@ namespace SortingNetworks
             ReversePermutation = Vector256.Create(7, 6, 5, 4, 3, 2, 1, 0);
         }
 
+        // This is the last size that can be reasonably inlined due to code size and # of registers.
+        [MethodImpl(MethodImplOptions.AggressiveOptimization)]
+        public unsafe void Sort32(int* data) {
+            var v0 = Avx.LoadVector256(data + 0);
+            var v1 = Avx.LoadVector256(data + 8);
+            var v2 = Avx.LoadVector256(data + 16);
+            var v3 = Avx.LoadVector256(data + 24);
+            Block_32_1(2, ref v0, ref v1, ref v2, ref v3);
+            Block_32_1(3, ref v0, ref v1, ref v2, ref v3);
+            Block_32_1(4, ref v0, ref v1, ref v2, ref v3);
+            Block_32_1(5, ref v0, ref v1, ref v2, ref v3);
+            Block_32_1(5, ref v0, ref v1, ref v2, ref v3);
+            Avx.Store(data + 0, v0);
+            Avx.Store(data + 8, v1);
+            Avx.Store(data + 16, v2);
+            Avx.Store(data + 24, v3);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveOptimization)]
+        public unsafe void Sort32(int* data, int c) {
+            throw new NotImplementedException("Sort32");
+        }
+
         [MethodImpl(MethodImplOptions.AggressiveOptimization)]
         public unsafe void Sort16(int* data) {
             var v0 = Avx.LoadVector256(data + 0);

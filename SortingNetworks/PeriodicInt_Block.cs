@@ -10,6 +10,32 @@ namespace SortingNetworks
     partial class PeriodicInt
     {
         /// <summary>
+        /// Block for sorting one vector of 32 elements (four registers).
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
+        public void Block_32_1(int p, ref V _v0, ref V _v1, ref V _v2, ref V _v3) {
+            V v0 = _v0, v1 = _v1, v2, v3, m0, m1;
+            
+            v2 = Avx2.PermuteVar8x32(_v2, ReversePermutation);
+            v3 = Avx2.PermuteVar8x32(_v3, ReversePermutation);
+            m0 = Avx2.Max(v0, v3);
+            m1 = Avx2.Max(v1, v2);
+            v0 = Avx2.Min(v0, v3);
+            v1 = Avx2.Min(v1, v2);
+            v2 = Avx2.PermuteVar8x32(m1, ReversePermutation);
+            v3 = Avx2.PermuteVar8x32(m0, ReversePermutation);
+            if (p == 1)
+                goto done;
+
+            Block_16_1(p - 1, ref v0, ref v1);
+            Block_16_1(p - 1, ref v2, ref v3);
+
+        done:
+            _v0 = v0; _v1 = v1;
+            _v2 = v2; _v3 = v3;
+        }
+
+        /// <summary>
         /// Block for sorting one vector of 16 elements (two registers).
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]

@@ -1,6 +1,6 @@
 # Sorting networks
 
-Playground for exploring implementation techniques for sorting networks.  These can sort smaller arrays much faster
+Playground for exploring implementation techniques for sorting networks.  These can sort small arrays much faster
 than `Array.Sort()`; see [benchmarks](#benchmarks) below.
 
 # Project structure
