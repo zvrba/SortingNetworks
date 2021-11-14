@@ -71,7 +71,7 @@ subtracted and new results calculatd.  I couldn't figure out how to coerce Bench
 as additive overhead instead of, well, _baseline_.  (Actually, that's what `[IterationSetup]` and `[IterationCleanup]`
 are for, but they come with a warning that they could spoil results of microbenchmarks.)
 
-## Direct vs delegate invocation
+## Invocation: direct vs delegate vs compiled expression
 
 There is no substantial difference between directly invoking an instance method and invoking it through a generic delegate.
 See `SNBenchmark/DelegateBenchmark.cs`.  A sample comparison:
