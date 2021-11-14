@@ -32,7 +32,10 @@ Nevertheless, methods are exposed as public as they can be used as building bloc
 of smaller sizes.  It also exposes "raw" sorting methods with hard-coded maximum sizes.  The class has no writable internal state,
 so it is recommended to use a single (non-static) instance throughout the program (see remark about statics in below).
 
-Directory `Attic` contains the (failed) experiment with expression trees and an earlier iterations of the periodic network.
+NB! `UnsafeSort<T>.Sort(T* data, int c)` are not yet implemented -- only sizes 4, 8, 16 and 32 are supported.
+
+Directory `Attic` contains the (failed) experiment with expression trees and an earlier (less performant) iterations of the
+periodic network.
 
 ### Random numbers
 
@@ -56,7 +59,7 @@ save for the long prologue/epilogue sequences  This makes the overhead of callin
 way too big for this application.
 
 `unsafe` is not viral: Method `A` is allowed to call `unsafe` method `B` without `A` having to be marked
-unsafe as well.
+unsafe as well.  Also, it is allowed to assign an `unsafe` method to a non-unsafe delegate variable.
 
 `System.Random` does not have consistent timing: when used in the baseline benchmark, the results almost always
 contained a warning about it having a bimodal distribution.  This makes it rather unusable in baseline benchmarks.
@@ -88,10 +91,48 @@ Intel Core i7-8650U CPU 1.90GHz (Kaby Lake R), 1 CPU, 8 logical and 4 physical c
 # Main results
 
 Observed anomaly: sorting network is data-oblivious and always runs the same number of operations for a vector of
-the given size.  Yet, sorted and reverse-sorted inputs run significantly faster than random inputs.  The following
-tables show "raw" results.
+given size.  Yet, sorted and reverse-sorted inputs run significantly faster than random inputs.  The following
+tables shows "raw" results for three different patterns (ascending, descending, random) and sizes of 4, 8 and 16.
 
-The tables below show adjusted relative results: from each mean result above, the mean of "Baseline" benchmark is
+|      Method | Pattern | Size |       Mean |     Error |    StdDev | Ratio | RatioSD |
+|------------ |-------- |----- |-----------:|----------:|----------:|------:|--------:|
+|      NoSort |     Asc |    4 |   9.235 ns | 0.1546 ns | 0.3521 ns |  1.00 |    0.00 |
+|   ArraySort |     Asc |    4 |  36.464 ns | 0.7381 ns | 0.6163 ns |  3.80 |    0.18 |
+| NetworkSort |     Asc |    4 |  17.414 ns | 0.3547 ns | 0.3145 ns |  1.82 |    0.10 |
+|             |         |      |            |           |           |       |         |
+|      NoSort |    Desc |    4 |   9.726 ns | 0.1218 ns | 0.0951 ns |  1.00 |    0.00 |
+|   ArraySort |    Desc |    4 |  43.071 ns | 0.7246 ns | 0.6778 ns |  4.42 |    0.08 |
+| NetworkSort |    Desc |    4 |  19.277 ns | 0.1599 ns | 0.1417 ns |  1.98 |    0.03 |
+|             |         |      |            |           |           |       |         |
+|      NoSort |    Rand |    4 |  13.326 ns | 0.1377 ns | 0.1288 ns |  1.00 |    0.00 |
+|   ArraySort |    Rand |    4 |  54.264 ns | 0.2849 ns | 0.2379 ns |  4.07 |    0.05 |
+| NetworkSort |    Rand |    4 |  22.556 ns | 0.4795 ns | 0.5708 ns |  1.68 |    0.05 |
+|             |         |      |            |           |           |       |         |
+|      NoSort |     Asc |    8 |  17.757 ns | 0.3177 ns | 0.3902 ns |  1.00 |    0.00 |
+|   ArraySort |     Asc |    8 |  55.678 ns | 1.0613 ns | 1.0423 ns |  3.12 |    0.09 |
+| NetworkSort |     Asc |    8 |  26.037 ns | 0.4418 ns | 0.4133 ns |  1.46 |    0.04 |
+|             |         |      |            |           |           |       |         |
+|      NoSort |    Desc |    8 |  22.384 ns | 0.1172 ns | 0.1039 ns |  1.00 |    0.00 |
+|   ArraySort |    Desc |    8 |  82.120 ns | 0.3849 ns | 0.3005 ns |  3.67 |    0.02 |
+| NetworkSort |    Desc |    8 |  28.125 ns | 0.1688 ns | 0.1579 ns |  1.26 |    0.01 |
+|             |         |      |            |           |           |       |         |
+|      NoSort |    Rand |    8 |  24.462 ns | 0.1588 ns | 0.1240 ns |  1.00 |    0.00 |
+|   ArraySort |    Rand |    8 | 110.004 ns | 2.1193 ns | 1.9824 ns |  4.51 |    0.07 |
+| NetworkSort |    Rand |    8 |  35.322 ns | 0.7283 ns | 1.0446 ns |  1.44 |    0.06 |
+|             |         |      |            |           |           |       |         |
+|      NoSort |     Asc |   16 |  32.679 ns | 0.5633 ns | 0.4398 ns |  1.00 |    0.00 |
+|   ArraySort |     Asc |   16 |  85.866 ns | 1.2877 ns | 1.6285 ns |  2.64 |    0.08 |
+| NetworkSort |     Asc |   16 |  46.122 ns | 0.7638 ns | 0.7501 ns |  1.41 |    0.04 |
+|             |         |      |            |           |           |       |         |
+|      NoSort |    Desc |   16 |  44.764 ns | 0.1354 ns | 0.1201 ns |  1.00 |    0.00 |
+|   ArraySort |    Desc |   16 | 216.594 ns | 2.2502 ns | 1.7568 ns |  4.84 |    0.04 |
+| NetworkSort |    Desc |   16 |  51.849 ns | 0.2652 ns | 0.2214 ns |  1.16 |    0.00 |
+|             |         |      |            |           |           |       |         |
+|      NoSort |    Rand |   16 |  46.484 ns | 0.6184 ns | 0.5784 ns |  1.00 |    0.00 |
+|   ArraySort |    Rand |   16 | 228.829 ns | 2.5336 ns | 2.2460 ns |  4.92 |    0.06 |
+| NetworkSort |    Rand |   16 |  68.567 ns | 1.1436 ns | 1.5267 ns |  1.48 |    0.04 |
+
+The tables below show adjusted relative results: from each mean result above, the mean of "NoSort" benchmark is
 subtracted and new results calculatd.  I couldn't figure out how to coerce BenchmarkDotNet into treating the baseline
 as additive overhead instead of, well, _baseline_.  (Actually, that's what `[IterationSetup]` and `[IterationCleanup]`
 are for, but they come with a warning that they could spoil results of microbenchmarks.)
@@ -116,7 +157,6 @@ methods on an instance of `PeriodicInt`:
 |--------------- |---------:|---------:|---------:|
 | AbstractInvoke | 23.80 ns | 0.421 ns | 0.603 ns |
 | ConcreteInvoke | 23.28 ns | 0.310 ns | 0.290 ns |
-
 
 NB! The results between the two benchmarks are not directly comparable as they run different algorithms.
 

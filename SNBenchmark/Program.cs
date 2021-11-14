@@ -36,14 +36,11 @@ namespace SNBenchmark
         }
 
         static unsafe void Validate() {
-#if false
-            var d = new int[16];
-            for (int i = 0; i < 16; ++i) d[i] = i;
-            var z = SortingNetworks.UnsafeSort<int>.CreateInt(16);
-            fixed (int* p = d)
-                z.FullSorter(p);
-            Validate(z);
-#endif
+            for (int size = 4; size <= 16; size *= 2) {
+                var d = new int[size];
+                var n = SortingNetworks.UnsafeSort.CreateInt(size);
+                Validate(n);
+            }
         }
 
         static void Validate(SortingNetworks.UnsafeSort<int> sorter) {
