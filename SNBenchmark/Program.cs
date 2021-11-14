@@ -40,12 +40,12 @@ namespace SNBenchmark
             for (int i = 0; i < 16; ++i) d[i] = i;
             var z = SortingNetworks.UnsafeSort<int>.CreateInt(16);
             fixed (int* p = d)
-                z.Sorter(p);
+                z.FullSorter(p);
             Validate(z);
         }
 
         static void Validate(SortingNetworks.UnsafeSort<int> sorter) {
-            Console.Write($"Validating size {sorter.Length:D2}: ");
+            Console.Write($"Validating size {sorter.MaxLength:D2}: ");
             try {
                 Validation.Check(sorter);
                 Console.WriteLine("OK");

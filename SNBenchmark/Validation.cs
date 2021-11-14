@@ -15,20 +15,20 @@ namespace SNBenchmark
         /// <exception cref="ArgumentOutOfRangeException">Sorter's length is larger than 28.</exception>
         /// <exception cref="NotImplementedException">Validation has failed.</exception>
         public static unsafe void Check(SortingNetworks.UnsafeSort<int> sort) {
-            if (sort.Length > 28)
-                throw new ArgumentOutOfRangeException($"The sorter's sequence length {sort.Length} is too large.  Max acceptable value is 28.");
+            if (sort.MaxLength > 28)
+                throw new ArgumentOutOfRangeException($"The sorter's sequence length {sort.MaxLength} is too large.  Max acceptable value is 28.");
             
-            var bits = new int[sort.Length];
+            var bits = new int[sort.MaxLength];
             var c = new int[2];
 
             fixed (int* b = bits) {
-                for (int i = 0; i < 1 << sort.Length; ++i) {
-                    for (int j = i, k = 0; k < sort.Length; ++k, j >>= 1) {
+                for (int i = 0; i < 1 << sort.MaxLength; ++i) {
+                    for (int j = i, k = 0; k < sort.MaxLength; ++k, j >>= 1) {
                         bits[k] = j & 1;
                         ++c[j & 1];
                     }
                     
-                    sort.Sorter(b);
+                    sort.FullSorter(b);
                     
                     if (!IsSorted(bits))
                         throw new NotImplementedException($"Sorting failed for bit pattern {i:X8}.");

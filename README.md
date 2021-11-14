@@ -40,9 +40,6 @@ Benchmarks use `MWC1616Rand` with a fixed seed as `AESRand` seemed to generate s
 # Lessons learned
 These were learned by inspecting the generated assembly code in Release mode.
 
-When random generator state is a `struct`, that variable must not be declared as `readonly` in its
-containing type -- defensive copies will be generated and state updates will be discarded.
-
 Accessing static data has more overhead than accessing instance data: extraneous CALL instructions into the runtime
 are generated.  My guess is that these ensure thread-safe, once-only static initialization semantics.
 
