@@ -3,17 +3,41 @@
 Playground for exploring implementation techniques for sorting networks.  These can sort smaller arrays much faster
 than `Array.Sort()`; see [benchmarks](#benchmarks) below.
 
-## Project structure
+# Project structure
+
+The projects are developed with Visual Studio 2019 and target netcore3.1.  The solution consists of two projects.
+
+## SNBenchmark
+
+This project dependes on BenchmarkDotNet. It contains validation code, benchmarks and demonstrates the use of sorting methods.
+The main program must be run with a single argument: `V` or `B`. 
+
+When run with `V`, it runs an exhaustive validation of networks for element counts of up to 28.  This is not possible for larger
+networks as `2^N` zero/one inputs would have to be tested.
+
+When run with "B", it passes the rest of the arguments to BenchmarkDotNet.  Without any additional arguments, it will present a menu.
+All benchmarks call `Environment.FailFast` if the result is found to be unsorted so that this can be detected in the logs.
+
+## SortingNetworks
 
 `SortingNetworks` project is the main code and has no dependencies.  The high-performance public types use `unsafe`
 code and can only be used from `unsafe` methods.  The code depends on AVX2 instruction set.  In addition, `AESRand`
-class depends on AES-NI instruction set.
+class depends on AES-NI instruction set.  
 
-`SNBenchmark` project contains the benchmarks and dependes on BenchmarkDotNet.  The main program contains code to
-exhaustively validate networks for element counts of up to 28.  This is not possible for larger networks as `2^N`
-zero/one inputs would have to be tested.  Benchmarks call `Environment.FailFast` if the result is found to be unsorted.
+### Sorting
 
-## Lessons learned
+The main interface is `UnsafeSort` struct which exposes a couple of public fields and static factory functions.  The actual
+sorting code is in `PeriodicInt` class.  You are not expected to understand how it works without studying [references](#references).
+
+Directory `Attic` contains the (failed) experiment with expression trees and an earlier iterations of the periodic network.
+
+### Random numbers
+
+This subsystem consists of three classes: and abstract `UnsafeRandom` class and two concrete classes: `AESRand` and `MWC1616Rand`.
+These can be instantiated directly.  **NB!** The correctness of the code and the quality of random numbers has not been verified!
+Benchmarks use `MWC1616Rand` with a fixed seed as `AESRand` seemed to generate some obvious patterns. ()
+
+# Lessons learned
 These were learned by inspecting the generated assembly code in Release mode.
 
 When random generator state is a `struct`, that variable must not be declared as `readonly` in its

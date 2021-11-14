@@ -7,7 +7,7 @@ namespace SortingNetworks
 {
     using V = Vector256<int>;
 
-    public partial class PeriodicInt2
+    partial class PeriodicInt
     {
         /// <summary>
         /// Block for sorting one vector of 16 elements (two registers).

@@ -1,11 +1,11 @@
 ﻿using System;
 
-namespace SortingNetworks
+namespace SNBenchmark
 {
     /// <summary>
     /// Validation methods for verifying output of a sorting network.
     /// </summary>
-    public static class Validation
+    static class Validation
     {
         /// <summary>
         /// Validates <paramref name="sort"/> by exploiting theorem Z of TAOCOP section 5.3.4: it is
@@ -14,7 +14,7 @@ namespace SortingNetworks
         /// </summary>
         /// <exception cref="ArgumentOutOfRangeException">Sorter's length is larger than 28.</exception>
         /// <exception cref="NotImplementedException">Validation has failed.</exception>
-        public static unsafe void Check(UnsafeSort<int> sort) {
+        public static unsafe void Check(SortingNetworks.UnsafeSort<int> sort) {
             if (sort.Length > 28)
                 throw new ArgumentOutOfRangeException($"The sorter's sequence length {sort.Length} is too large.  Max acceptable value is 28.");
             

@@ -10,7 +10,7 @@ namespace SNBenchmark
     public abstract class IntBenchmarkBase
     {
         readonly int[] data;
-        readonly SortingNetworks.PeriodicInt periodicInt = new SortingNetworks.PeriodicInt();
+        readonly SortingNetworks.Attic.PeriodicInt periodicInt = new SortingNetworks.Attic.PeriodicInt();
 
 
         /// <summary>
@@ -32,7 +32,7 @@ namespace SNBenchmark
             Generate(data);
             for (int i = 0; i < data.Length; ++i)   // Simulate sorting.
                 data[i] = i;
-            if (!SortingNetworks.Validation.IsSorted(data))
+            if (!Validation.IsSorted(data))
                 Environment.FailFast("Unsorted [Baseline].");
         }
 
@@ -42,7 +42,7 @@ namespace SNBenchmark
         protected void ArraySort() {
             Generate(data);
             Array.Sort(data);
-            if (!SortingNetworks.Validation.IsSorted(data))
+            if (!Validation.IsSorted(data))
                 Environment.FailFast("Unsorted [ArraySort].");
         }
 
@@ -53,7 +53,7 @@ namespace SNBenchmark
             Generate(data);
             fixed (int* p = data)
                 periodicInt.Sort16(p);
-            if (!SortingNetworks.Validation.IsSorted(data))
+            if (!Validation.IsSorted(data))
                 Environment.FailFast("Unsorted [NetworkSort].");
         }
 
@@ -61,7 +61,7 @@ namespace SNBenchmark
             Generate(data);
             fixed (int* p = data)
                 periodicInt.Sort32(p);
-            if (!SortingNetworks.Validation.IsSorted(data))
+            if (!Validation.IsSorted(data))
                 Environment.FailFast("Unsorted [NetworkSort].");
         }
     }

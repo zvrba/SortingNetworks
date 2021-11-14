@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace SortingNetworks
 {
@@ -36,7 +34,7 @@ namespace SortingNetworks
         }
 
         public static unsafe UnsafeSort<int> CreateInt(int length) {
-            var p = new PeriodicInt2();
+            var p = new PeriodicInt();
             if (length == 4)
                 return new UnsafeSort<int>(length, p.Sort4);
             if (length == 8)

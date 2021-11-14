@@ -14,7 +14,7 @@ namespace SortingNetworks
     /// <remarks>
     /// You're not expected to understand this code unless you have read the paper by Dowd et al.
     /// </remarks>
-    public partial class PeriodicInt2
+    partial class PeriodicInt
     {
         readonly V Zero;                    // 00000000
         readonly V Complement;              // FFFFFFFF
@@ -25,7 +25,7 @@ namespace SortingNetworks
         readonly V Max;                     // int.MaxValue in each element
         readonly V ReversePermutation;      // Input to VPERMD that reverses all 8 ints 
 
-        public PeriodicInt2() {
+        public PeriodicInt() {
             Zero = V.Zero;
             Complement = Avx2.CompareEqual(Zero, Zero);
             AlternatingMaskHi128 = Vector256.Create(0L, 0L, -1L, -1L).AsInt32();

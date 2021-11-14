@@ -47,7 +47,7 @@ namespace SNBenchmark
         static void Validate(SortingNetworks.UnsafeSort<int> sorter) {
             Console.Write($"Validating size {sorter.Length:D2}: ");
             try {
-                SortingNetworks.Validation.Check(sorter);
+                Validation.Check(sorter);
                 Console.WriteLine("OK");
             } catch (Exception e) {
                 Console.WriteLine($"FAILED: {e.Message}");
