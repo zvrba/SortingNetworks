@@ -1,7 +1,7 @@
 # Sorting networks
 
 Playground for exploring implementation techniques for sorting networks.  These can sort smaller arrays much faster
-than `Array.Sort()`; see benchmarks below.
+than `Array.Sort()`; see [benchmarks](#benchmarks) below.
 
 ## Project structure
 
@@ -9,10 +9,9 @@ than `Array.Sort()`; see benchmarks below.
 code and can only be used from `unsafe` methods.  The code depends on AVX2 instruction set.  In addition, `AESRand`
 class depends on AES-NI instruction set.
 
-`SNBenchmark` project contains the benchmarks and dependes on BenchmarkDotNet.  The main program exhaustively validates
-`Periodic16` sorter.  This is not possible for larger networks as `2^N` zero/one inputs would have to be tested.  Benchmarks
-call `Environment.FailFast` if the result is found to be unsorted, but this is of little assurance: by another theorem
-in TAOCP, there exist "almost correct" networks that sort _every but one_ input.
+`SNBenchmark` project contains the benchmarks and dependes on BenchmarkDotNet.  The main program contains code to
+exhaustively validate networks for element counts of up to 28.  This is not possible for larger networks as `2^N`
+zero/one inputs would have to be tested.  Benchmarks call `Environment.FailFast` if the result is found to be unsorted.
 
 ## Lessons learned
 These were learned by inspecting the generated assembly code in Release mode.
@@ -47,9 +46,12 @@ fill `data` with numbers from `0 .. Length-1`.
 I attempted to make concrete benchmark classes `sealed`, but that makes BenchmarkDotNet fail because it apparently
 needs to derive from the benchmark class.
 
+RyuJIT has some impressive optimizations: despite branches in "block" methods in `PeriodicInt`, it manages to generate
+branchless code when constants that branches depend on are known at compile-time.
+
 # Benchmarks
 
-Benchmarks were run on the following configuration:
+All benchmarks are in top-level directory of `SNBenchmark` project. Benchmarks were run on the following configuration:
 
 ```
 BenchmarkDotNet=v0.13.1, OS=Windows 10.0.19042.1348 (20H2/October2020Update)
@@ -58,7 +60,6 @@ Intel Core i7-8650U CPU 1.90GHz (Kaby Lake R), 1 CPU, 8 logical and 4 physical c
   [Host]     : .NET Core 3.1.21 (CoreCLR 4.700.21.51404, CoreFX 4.700.21.51508), X64 RyuJIT
   DefaultJob : .NET Core 3.1.21 (CoreCLR 4.700.21.51404, CoreFX 4.700.21.51508), X64 RyuJIT
 ```
-
 
 # Main results
 
@@ -73,19 +74,29 @@ are for, but they come with a warning that they could spoil results of microbenc
 
 ## Invocation: direct vs delegate vs compiled expression
 
-There is no substantial difference between directly invoking an instance method and invoking it through a generic delegate.
-See `SNBenchmark/DelegateBenchmark.cs`.  A sample comparison:
+This project was initially started to investigate manual code generation using expression trees, but it turns out that
+these are unsuitable for high-performance scenarios as the prologue/epilogue in the generated code has way too high overhead
+(see `ExpressionInvocationBenchmark`):
 
-|         Method |     Mean |    Error |   StdDev |
-|--------------- |---------:|---------:|---------:|
-|   DirectInvoke | 55.70 ns | 1.035 ns | 1.192 ns |
-| DelegateInvoke | 55.42 ns | 0.884 ns | 0.738 ns |
+|           Method |      Mean |    Error |   StdDev |
+|----------------- |----------:|---------:|---------:|
+|     DirectInvoke |  45.51 ns | 0.934 ns | 2.147 ns |
+| ExpressionInvoke | 124.08 ns | 2.512 ns | 6.747 ns |
 
-This is the main result driving the design of `UnsafeSort<T>`.
+On the other hand, there is no substantial difference between directly invoking an instance method, invoking it through an
+interface or invoking it through a (generic) delegate (see `InvocationBenchmark`):
+
+|          Method |     Mean |    Error |   StdDev |
+|---------------- |---------:|---------:|---------:|
+|    DirectInvoke | 57.54 ns | 0.763 ns | 0.676 ns |
+| InterfaceInvoke | 58.66 ns | 1.002 ns | 1.954 ns |
+|  DelegateInvoke | 59.28 ns | 1.198 ns | 1.718 ns |
+
+The results between the two benchmarks are not directly comparable as they run different algorithms.
 
 # References
 
-D. E. Knuth, The Art of Computer Programming, vol. 3, section 5.3.4 for basic expositio. The ""periodic" network as
+D. E. Knuth, The Art of Computer Programming, vol. 3, section 5.3.4 for basic exposition. The ""periodic" network as
 implemented here appears in TAOCP exercise 53, but has first been described by Dowd et al.: "The Periodic Balanced Sorting
 Network", JACM Vol. 36, No. 4, October 1989, pp. 738-757.
 

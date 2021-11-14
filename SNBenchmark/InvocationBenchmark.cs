@@ -4,48 +4,69 @@ using BenchmarkDotNet.Attributes;
 namespace SNBenchmark
 {
     [BenchmarkCategory("Invocation")]
-    public class InvocationBenchmark
+    public class ExpressionInvocationBenchmark
     {
-        readonly int[] data;
-        readonly SortingNetworks.MWC1616Rand rng = new SortingNetworks.MWC1616Rand(new int[8] { 2, 3, 5, 7, 11, 13, 17, 19 });
-        readonly SortingNetworks.PeriodicInt direct;
-        readonly SortingNetworks.UnsafeSort<int> @delegate;
-        readonly SortingNetworks.Attic.Periodic16Expr expr;
+        readonly int[] data = new int[16];
+        readonly SortingNetworks.Attic.Periodic16Expr expr = new SortingNetworks.Attic.Periodic16Expr();
 
-        public unsafe InvocationBenchmark() {
-            data = new int[16];
-            direct = new SortingNetworks.PeriodicInt();
-            @delegate = SortingNetworks.UnsafeSort<int>.CreateInt(data.Length);
-            expr = new SortingNetworks.Attic.Periodic16Expr();
-        }
-
-
-        unsafe void Generate(int[] data) {
-            fixed (int* p = data) {
-                for (int i = 0; i < data.Length / 4; ++i)
-                    rng.Get4(p + 4 * i);
-            }
+        // Sets up data array to be sorted so as to have minimum possible data-dependent variation.
+        [GlobalSetup]
+        public void GlobalSetup() {
+            for (int i = 0; i < data.Length; ++i) data[i] = i;
         }
 
         [Benchmark]
         public unsafe void DirectInvoke() {
-            Generate(data);
             fixed (int* p = data)
-                direct.Sort16(p);
-        }
-
-        [Benchmark]
-        public unsafe void DelegateInvoke() {
-            Generate(data);
-            fixed (int* p = data)
-                @delegate.Sorter(p);
+                SortingNetworks.Attic.Periodic16Branchless.Sort(p);
         }
 
         [Benchmark]
         public unsafe void ExpressionInvoke() {
-            Generate(data);
             fixed (int* p = data)
                 expr.Sort(p);
+        }
+    }
+
+    [BenchmarkCategory("Invocation")]
+    public class InvocationBenchmark
+    {
+        readonly int[] data = new int[16];
+        readonly Sorter sorter = new Sorter();
+        readonly ISorter isorter = new Sorter();
+        readonly Action<int[]> dsorter = (new Sorter()).Sort;
+
+        // Generate a sorted array to remove all data-dependent variability.
+        [GlobalSetup]
+        public void GlobalSetup() {
+            for (int i = 0; i < data.Length; ++i) data[i] = i;
+        }
+
+        [Benchmark]
+        public void DirectInvoke() {
+            sorter.Sort(data);
+        }
+
+        [Benchmark]
+        public void InterfaceInvoke() {
+            isorter.Sort(data);
+        }
+
+        [Benchmark]
+        public unsafe void DelegateInvoke() {
+            dsorter(data);
+        }
+
+        interface ISorter
+        {
+            void Sort(int[] data);
+        }
+
+        class Sorter : ISorter
+        {
+            public unsafe void Sort(int[] data) {
+                Array.Sort(data);
+            }
         }
     }
 }
