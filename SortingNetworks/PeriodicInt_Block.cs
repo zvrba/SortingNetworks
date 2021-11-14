@@ -13,7 +13,7 @@ namespace SortingNetworks
         /// Block for sorting one vector of 16 elements (two registers).
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
-        void Block_16_1(int p, ref V _v0, ref V _v1) {
+        public void Block_16_1(int p, ref V _v0, ref V _v1) {
             V v0 = _v0, v1, m;
 
             v1 = Avx2.PermuteVar8x32(_v1, ReversePermutation);
@@ -35,7 +35,7 @@ namespace SortingNetworks
         /// Block for sorting one vector of 8 elements.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
-        void Block_8_1(int p, ref V _v) {
+        public void Block_8_1(int p, ref V _v) {
             V v0 = _v, v1, m;
 
             // PHASE1:
@@ -59,7 +59,7 @@ namespace SortingNetworks
             /// Block for sorting 2 independent vectors of 4 elements each.
             /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
-        void Block_4_2(int p, ref V _v) {
+        public void Block_4_2(int p, ref V _v) {
             V v0 = _v, v1, m;
 
             // PHASE1:

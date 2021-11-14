@@ -28,6 +28,9 @@ class depends on AES-NI instruction set.
 
 The main interface is `UnsafeSort` class which exposes a couple of properties/methods and static factory functions.  The actual
 sorting code is in `PeriodicInt` class.  You are not expected to understand how it works without studying [references](#references).
+Nevertheless, methods are exposed as public as they can be used as building blocks of larger sorters and/or parallel sorters
+of smaller sizes.  It also exposes "raw" sorting methods with hard-coded maximum sizes.  The class has no writable internal state,
+so it is recommended to use a single (non-static) instance throughout the program (see remark about statics in below).
 
 Directory `Attic` contains the (failed) experiment with expression trees and an earlier iterations of the periodic network.
 

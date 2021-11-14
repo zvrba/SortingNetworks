@@ -14,16 +14,16 @@ namespace SortingNetworks
     /// <remarks>
     /// You're not expected to understand this code unless you have read the paper by Dowd et al.
     /// </remarks>
-    partial class PeriodicInt
+    public partial class PeriodicInt
     {
-        readonly V Zero;                    // 00000000
-        readonly V Complement;              // FFFFFFFF
-        readonly V AlternatingMaskLo128;    // 0000FFFF
-        readonly V AlternatingMaskHi128;    // FFFF0000
-        readonly V AlternatingMaskHi64;     // FF00FF00
-        readonly V AlternatingMaskHi32;     // F0F0F0F0
-        readonly V Max;                     // int.MaxValue in each element
-        readonly V ReversePermutation;      // Input to VPERMD that reverses all 8 ints 
+        public readonly V Zero;                    // 00000000
+        public readonly V Complement;              // FFFFFFFF
+        public readonly V AlternatingMaskLo128;    // 0000FFFF
+        public readonly V AlternatingMaskHi128;    // FFFF0000
+        public readonly V AlternatingMaskHi64;     // FF00FF00
+        public readonly V AlternatingMaskHi32;     // F0F0F0F0
+        public readonly V Max;                     // int.MaxValue in each element
+        public readonly V ReversePermutation;      // Input to VPERMD that reverses all 8 ints 
 
         public PeriodicInt() {
             Zero = V.Zero;
@@ -37,7 +37,7 @@ namespace SortingNetworks
         }
 
         [MethodImpl(MethodImplOptions.AggressiveOptimization)]
-        internal unsafe void Sort16(int* data) {
+        public unsafe void Sort16(int* data) {
             var v0 = Avx.LoadVector256(data + 0);
             var v1 = Avx.LoadVector256(data + 8);
             Block_16_1(2, ref v0, ref v1);
@@ -49,12 +49,12 @@ namespace SortingNetworks
         }
 
         [MethodImpl(MethodImplOptions.AggressiveOptimization)]
-        internal unsafe void Sort16(int* data, int c) {
+        public unsafe void Sort16(int* data, int c) {
             throw new NotImplementedException("Sort16");
         }
 
         [MethodImpl(MethodImplOptions.AggressiveOptimization)]
-        internal unsafe void Sort8(int* data) {
+        public unsafe void Sort8(int* data) {
             var v = Avx.LoadVector256(data);
             Block_8_1(2, ref v);
             Block_8_1(3, ref v);
@@ -63,12 +63,12 @@ namespace SortingNetworks
         }
 
         [MethodImpl(MethodImplOptions.AggressiveOptimization)]
-        internal unsafe void Sort8(int* data, int c) {
+        public unsafe void Sort8(int* data, int c) {
             throw new NotImplementedException("Sort8");
         }
 
         [MethodImpl(MethodImplOptions.AggressiveOptimization)]
-        internal unsafe void Sort4(int* data) {
+        public unsafe void Sort4(int* data) {
             var v = Avx2.MaskLoad(data, AlternatingMaskLo128);
             Block_4_2(2, ref v);
             Block_4_2(2, ref v);
@@ -76,7 +76,7 @@ namespace SortingNetworks
         }
 
         [MethodImpl(MethodImplOptions.AggressiveOptimization)]
-        internal unsafe void Sort4(int* data, int c) {
+        public unsafe void Sort4(int* data, int c) {
             throw new NotImplementedException("Sort4");
         }
     }

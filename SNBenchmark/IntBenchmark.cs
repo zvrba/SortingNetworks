@@ -10,7 +10,7 @@ namespace SNBenchmark
     public abstract class IntBenchmarkBase
     {
         readonly int[] data;
-        readonly SortingNetworks.Attic.PeriodicInt periodicInt = new SortingNetworks.Attic.PeriodicInt();
+        readonly SortingNetworks.PeriodicInt periodicInt = new SortingNetworks.PeriodicInt();
 
 
         /// <summary>
@@ -57,6 +57,7 @@ namespace SNBenchmark
                 Environment.FailFast("Unsorted [NetworkSort].");
         }
 
+#if false
         protected unsafe void NetworkSort32() {
             Generate(data);
             fixed (int* p = data)
@@ -64,6 +65,7 @@ namespace SNBenchmark
             if (!Validation.IsSorted(data))
                 Environment.FailFast("Unsorted [NetworkSort].");
         }
+#endif
     }
 
     /// <summary>
@@ -134,31 +136,5 @@ namespace SNBenchmark
 
         [Benchmark]
         public void NetworkSort() => base.NetworkSort16();
-    }
-
-    /// <summary>
-    /// Benchmarks sorting on random data.
-    /// </summary>
-    public class IntRandBenchmark32 : IntBenchmarkBase
-    {
-        readonly SortingNetworks.MWC1616Rand rng = new SortingNetworks.MWC1616Rand(new int[8] { 2, 3, 5, 7, 11, 13, 17, 19 });
-
-        public IntRandBenchmark32() : base(32) { }
-
-        protected sealed unsafe override void Generate(int[] data) {
-            fixed (int* p = data) {
-                for (int i = 0; i < data.Length / 4; ++i)
-                    rng.Get4(p + 4 * i);
-            }
-        }
-
-        [Benchmark(Baseline = true)]
-        public new void Baseline() => base.Baseline();
-
-        [Benchmark]
-        public new void ArraySort() => base.ArraySort();
-
-        [Benchmark]
-        public void NetworkSort() => base.NetworkSort32();
     }
 }

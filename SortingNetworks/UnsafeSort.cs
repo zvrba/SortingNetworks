@@ -7,19 +7,27 @@ namespace SortingNetworks
     /// </summary>
     public static class UnsafeSort
     {
-        public static UnsafeSort<int> CreateInt(int length) {
-#if false
-            var p = new PeriodicInt();
-            if (length <= 4)
-                return new UnsafeSort<int>(length, p.Sort4, p.Sort4);
-            if (length <= 8)
-                return new UnsafeSort<int>(length, p.Sort8, p.Sort8);
-            if (length <= 16)
-                return new UnsafeSort<int>(length, p.Sort16, p.Sort16);
-#endif
-            throw new ArgumentOutOfRangeException(nameof(length));
-        }
+        // We want to access static data as infrequently as possible.
+        static private readonly PeriodicInt PeriodicInt = new PeriodicInt();
 
+        /// <summary>
+        /// Creates an instance of <c>UnsafeSort{int}</c>.
+        /// </summary>
+        /// <param name="length">
+        /// Maximum array length supported by the sorter.  Note that a "big" sorter cannot sort arbitrarily small arrays;
+        /// <see cref="UnsafeSort{T}.MinLength"/>.
+        /// </param>
+        public static UnsafeSort<int> CreateInt(int length) {
+            if (length <= 4)
+                return new Int4Sorter(PeriodicInt);
+            if (length <= 8)
+                return new Int8Sorter(PeriodicInt);
+            if (length <= 16)
+                return new Int16Sorter(PeriodicInt);
+            if (length <= 32)
+                return new Int32Sorter(PeriodicInt);
+            throw new ArgumentOutOfRangeException(nameof(length), "Largest supported length is 32.");
+        }
     }
 
     /// <summary>
@@ -30,12 +38,18 @@ namespace SortingNetworks
     /// <typeparam name="T">The type of array elements.</typeparam>
     public abstract class UnsafeSort<T> where T : unmanaged
     {
-        // We want to access static data as infrequently as possible.
-        static private readonly PeriodicInt PeriodicInt = new PeriodicInt();
-
-        private protected UnsafeSort(int maxLength) {
+        private protected UnsafeSort(PeriodicInt periodicInt, int maxLength) {
+            PeriodicInt = periodicInt;
+            MinLength = Math.Max(maxLength / 2 + 1, 0);
             MaxLength = maxLength;
         }
+
+        private protected readonly PeriodicInt PeriodicInt;
+
+        /// <summary>
+        /// Minimum array length supported by this sorter.  NB! Shorter arrays WILL BE SORTED INCORRECTLY!
+        /// </summary>
+        public int MinLength { get; }
 
         /// <summary>
         /// Maximum array length supported by this sorter.  This is also the length that is REQUIRED on input to <see cref="Sort(T*)"/>.
@@ -55,6 +69,7 @@ namespace SortingNetworks
         /// <param name="c">
         /// Number of elements to sort; unchecked!  It should be between 2 and <see cref="MaxLength"/>.  Passing
         /// <see cref="MaxLength"/> is allowed, but performance will be worse than calling <see cref="Sort(T*)"/>.
+        /// Passing less than <see cref="MinLength"/> will return an INCORRECT RESULT!
         /// </param>
         abstract public unsafe void Sort(T* data, int c);
     }
