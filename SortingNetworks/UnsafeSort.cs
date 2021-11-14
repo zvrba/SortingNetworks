@@ -40,7 +40,7 @@ namespace SortingNetworks
     {
         private protected UnsafeSort(PeriodicInt periodicInt, int maxLength) {
             PeriodicInt = periodicInt;
-            MinLength = Math.Max(maxLength / 2 + 1, 0);
+            MinLength = Math.Max(maxLength / 2 + 1, Math.Min(maxLength, 8));
             MaxLength = maxLength;
         }
 

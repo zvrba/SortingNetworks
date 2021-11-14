@@ -107,17 +107,18 @@ these are unsuitable for high-performance scenarios as the prologue/epilogue in 
 |     DirectInvoke |  45.51 ns | 0.934 ns | 2.147 ns |
 | ExpressionInvoke | 124.08 ns | 2.512 ns | 6.747 ns |
 
-On the other hand, there is no substantial difference between directly invoking an instance method, invoking it through an
-interface, an abstract base or a (generic) delegate (see `InvocationBenchmark`):
+On the other hand, there is no substantial difference between directly invoking an instance method, or invoking it through an
+abstract base method.  Thus there is no penalty in using the more convenient `UnsafeSort` class as opposed to directly calling
+methods on an instance of `PeriodicInt`:
 
-|          Method |     Mean |    Error |   StdDev |
-|---------------- |---------:|---------:|---------:|
-|    DirectInvoke | 59.79 ns | 0.998 ns | 1.366 ns |
-| InterfaceInvoke | 60.58 ns | 0.581 ns | 0.544 ns |
-|  DelegateInvoke | 59.36 ns | 0.613 ns | 0.574 ns |
-|  AbstractInvoke | 59.53 ns | 0.483 ns | 0.428 ns |
 
-The results between the two benchmarks are not directly comparable as they run different algorithms.
+|         Method |     Mean |    Error |   StdDev |
+|--------------- |---------:|---------:|---------:|
+| AbstractInvoke | 23.80 ns | 0.421 ns | 0.603 ns |
+| ConcreteInvoke | 23.28 ns | 0.310 ns | 0.290 ns |
+
+
+NB! The results between the two benchmarks are not directly comparable as they run different algorithms.
 
 # References
 

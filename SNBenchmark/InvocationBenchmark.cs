@@ -32,52 +32,24 @@ namespace SNBenchmark
     public class InvocationBenchmark
     {
         readonly int[] data = new int[16];
-        readonly Sorter sorter = new Sorter();
-        readonly Base asorter = new Sorter();
-        readonly ISorter isorter = new Sorter();
-        readonly Action<int[]> dsorter = (new Sorter()).Sort;
+        readonly SortingNetworks.UnsafeSort<int> asorter = SortingNetworks.UnsafeSort.CreateInt(16);
+        readonly SortingNetworks.PeriodicInt csorter = new SortingNetworks.PeriodicInt();
 
-        // Generate a sorted array to remove all data-dependent variability.
         [GlobalSetup]
         public void GlobalSetup() {
             for (int i = 0; i < data.Length; ++i) data[i] = i;
         }
 
         [Benchmark]
-        public void DirectInvoke() {
-            sorter.Sort(data);
+        public unsafe void AbstractInvoke() {
+            fixed (int* p = data)
+                asorter.Sort(p);
         }
 
         [Benchmark]
-        public void InterfaceInvoke() {
-            isorter.Sort(data);
-        }
-
-        [Benchmark]
-        public void DelegateInvoke() {
-            dsorter(data);
-        }
-
-        [Benchmark]
-        public void AbstractInvoke() {
-            asorter.Sort(data);
-        }
-
-        interface ISorter
-        {
-            void Sort(int[] data);
-        }
-
-        abstract class Base
-        {
-            abstract public void Sort(int[] data);
-        }
-
-        class Sorter : Base, ISorter
-        {
-            public override void Sort(int[] data) {
-                Array.Sort(data);
-            }
+        public unsafe void ConcreteInvoke() {
+            fixed (int* p = data)
+                csorter.Sort16(p);
         }
     }
 }
