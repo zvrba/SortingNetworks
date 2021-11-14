@@ -3,59 +3,12 @@
 namespace SortingNetworks
 {
     /// <summary>
-    /// Represents an in-place sorting method.
+    /// Factory methods for creating instances of <see cref="UnsafeSort{T}"/>.
     /// </summary>
-    /// <typeparam name="T">Type of array elements.  This must be an integer or floating-point type.</typeparam>
-    /// <param name="data">
-    /// Pointer to the chunk of data to be sorted.  If this chunk is not of sufficient length, UNDEFINED BEHAVIOUR
-    /// occurs (data corruption, crash).
-    /// </param>
-    public unsafe delegate void FullSorter<T>(T* data) where T : unmanaged;
-
-    /// <summary>
-    /// Represents an in-place sorting method.
-    /// </summary>
-    /// <typeparam name="T">Type of array elements.  This must be an integer or floating-point type.</typeparam>
-    /// <param name="data">
-    /// Pointer to the chunk of data to be sorted.  If this chunk is does not point to at least <c>c</c> elements,
-    /// UNDEFINED BEHAVIOUR occurs (data corruption, crash).
-    /// </param>
-    /// <param name="c">
-    /// Number of elements that should be sorted, starting at <c>data</c>.
-    /// </param>
-    public unsafe delegate void TruncatedSorter<T>(T* data, int c) where T : unmanaged;
-
-    /// <summary>
-    /// Provides complete information about a sorter: element type, maximum supported array length and the sorting delegates.
-    /// </summary>
-    /// <typeparam name="T"></typeparam>
-    public readonly struct UnsafeSort<T> where T : unmanaged
+    public static class UnsafeSort
     {
-        /// <summary>
-        /// Maximum array length supported by this sorter.  This length is also REQUIRED on input to <see cref="FullSorter"/>.
-        /// </summary>
-        public readonly int MaxLength;
-
-        /// <summary>
-        /// Delegate that performs the actual sorting.
-        /// The input array must have at least <see cref="MaxLength"/> elements.
-        /// </summary>
-        public readonly FullSorter<T> FullSorter;
-
-        /// <summary>
-        /// Delegate that performs the actual sorting.  The input array is allowed to have a length
-        /// less than <see cref="MaxLength"/>.  It is also allowed to invoke this method with <see cref="MaxLength"/>
-        /// elements, but performance will be worse.
-        /// </summary>
-        public readonly TruncatedSorter<T> TruncatedSorter;
-
-        private UnsafeSort(int length, FullSorter<T> fsort, TruncatedSorter<T> tsort) {
-            MaxLength = length;
-            FullSorter = fsort;
-            TruncatedSorter = tsort;
-        }
-
-        public static unsafe UnsafeSort<int> CreateInt(int length) {
+        public static UnsafeSort<int> CreateInt(int length) {
+#if false
             var p = new PeriodicInt();
             if (length <= 4)
                 return new UnsafeSort<int>(length, p.Sort4, p.Sort4);
@@ -63,8 +16,46 @@ namespace SortingNetworks
                 return new UnsafeSort<int>(length, p.Sort8, p.Sort8);
             if (length <= 16)
                 return new UnsafeSort<int>(length, p.Sort16, p.Sort16);
-
+#endif
             throw new ArgumentOutOfRangeException(nameof(length));
         }
+
+    }
+
+    /// <summary>
+    /// Provides methods for sorting "small" arrays of ints or floats.  NB! All methods taking pointer arguments require
+    /// that the allocated size is correct wrt. the implied or specified length.  Otherwise UNDEFINED BEHAVIOR occurs: data
+    /// corruption or crash.
+    /// </summary>
+    /// <typeparam name="T">The type of array elements.</typeparam>
+    public abstract class UnsafeSort<T> where T : unmanaged
+    {
+        // We want to access static data as infrequently as possible.
+        static private readonly PeriodicInt PeriodicInt = new PeriodicInt();
+
+        private protected UnsafeSort(int maxLength) {
+            MaxLength = maxLength;
+        }
+
+        /// <summary>
+        /// Maximum array length supported by this sorter.  This is also the length that is REQUIRED on input to <see cref="Sort(T*)"/>.
+        /// </summary>
+        public int MaxLength { get; }
+
+        /// <summary>
+        /// In-place sorts <see cref="MaxLength"/> elements starting at <paramref name="data"/>.
+        /// </summary>
+        /// <param name="data">Pointer to the chunk of data to be sorted.</param>
+        abstract public unsafe void Sort(T* data);
+
+        /// <summary>
+        /// In-place sorts <paramref name="c"/> elements starting at <paramref name="data"/>.
+        /// </summary>
+        /// <param name="data">Pointer to the chunk of data to be sorted.</param>
+        /// <param name="c">
+        /// Number of elements to sort; unchecked!  It should be between 2 and <see cref="MaxLength"/>.  Passing
+        /// <see cref="MaxLength"/> is allowed, but performance will be worse than calling <see cref="Sort(T*)"/>.
+        /// </param>
+        abstract public unsafe void Sort(T* data, int c);
     }
 }

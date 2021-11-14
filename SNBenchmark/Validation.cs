@@ -28,7 +28,7 @@ namespace SNBenchmark
                         ++c[j & 1];
                     }
                     
-                    sort.FullSorter(b);
+                    sort.Sort(b);
                     
                     if (!IsSorted(bits))
                         throw new NotImplementedException($"Sorting failed for bit pattern {i:X8}.");

@@ -33,6 +33,7 @@ namespace SNBenchmark
     {
         readonly int[] data = new int[16];
         readonly Sorter sorter = new Sorter();
+        readonly Base asorter = new Sorter();
         readonly ISorter isorter = new Sorter();
         readonly Action<int[]> dsorter = (new Sorter()).Sort;
 
@@ -53,8 +54,13 @@ namespace SNBenchmark
         }
 
         [Benchmark]
-        public unsafe void DelegateInvoke() {
+        public void DelegateInvoke() {
             dsorter(data);
+        }
+
+        [Benchmark]
+        public void AbstractInvoke() {
+            asorter.Sort(data);
         }
 
         interface ISorter
@@ -62,9 +68,14 @@ namespace SNBenchmark
             void Sort(int[] data);
         }
 
-        class Sorter : ISorter
+        abstract class Base
         {
-            public unsafe void Sort(int[] data) {
+            abstract public void Sort(int[] data);
+        }
+
+        class Sorter : Base, ISorter
+        {
+            public override void Sort(int[] data) {
                 Array.Sort(data);
             }
         }

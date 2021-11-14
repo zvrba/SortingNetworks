@@ -26,7 +26,7 @@ class depends on AES-NI instruction set.
 
 ### Sorting
 
-The main interface is `UnsafeSort` struct which exposes a couple of public fields and static factory functions.  The actual
+The main interface is `UnsafeSort` class which exposes a couple of properties/methods and static factory functions.  The actual
 sorting code is in `PeriodicInt` class.  You are not expected to understand how it works without studying [references](#references).
 
 Directory `Attic` contains the (failed) experiment with expression trees and an earlier iterations of the periodic network.
@@ -105,13 +105,14 @@ these are unsuitable for high-performance scenarios as the prologue/epilogue in 
 | ExpressionInvoke | 124.08 ns | 2.512 ns | 6.747 ns |
 
 On the other hand, there is no substantial difference between directly invoking an instance method, invoking it through an
-interface or invoking it through a (generic) delegate (see `InvocationBenchmark`):
+interface, an abstract base or a (generic) delegate (see `InvocationBenchmark`):
 
 |          Method |     Mean |    Error |   StdDev |
 |---------------- |---------:|---------:|---------:|
-|    DirectInvoke | 57.54 ns | 0.763 ns | 0.676 ns |
-| InterfaceInvoke | 58.66 ns | 1.002 ns | 1.954 ns |
-|  DelegateInvoke | 59.28 ns | 1.198 ns | 1.718 ns |
+|    DirectInvoke | 59.79 ns | 0.998 ns | 1.366 ns |
+| InterfaceInvoke | 60.58 ns | 0.581 ns | 0.544 ns |
+|  DelegateInvoke | 59.36 ns | 0.613 ns | 0.574 ns |
+|  AbstractInvoke | 59.53 ns | 0.483 ns | 0.428 ns |
 
 The results between the two benchmarks are not directly comparable as they run different algorithms.
 
