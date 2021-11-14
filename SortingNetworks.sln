@@ -5,10 +5,11 @@ VisualStudioVersion = 16.0.31424.327
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SortingNetworks", "SortingNetworks\SortingNetworks.csproj", "{2C887C06-7BA1-4B47-A0D7-352FE0AAAF63}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SNBenchmark", "SNBenchmark\SNBenchmark.csproj", "{F6666BA3-4CEB-4962-B9A2-917EA4C7F65D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SNBenchmark", "SNBenchmark\SNBenchmark.csproj", "{F6666BA3-4CEB-4962-B9A2-917EA4C7F65D}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{9B8ACCCE-973B-42F8-BC2A-2C6751AB5237}"
 	ProjectSection(SolutionItems) = preProject
+		LICENSE.txt = LICENSE.txt
 		README.md = README.md
 	EndProjectSection
 EndProject
