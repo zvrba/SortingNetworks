@@ -74,7 +74,8 @@ I attempted to make concrete benchmark classes `sealed`, but that makes Benchmar
 needs to derive from the benchmark class.
 
 RyuJIT has some impressive optimizations: despite branches in "block" methods in `PeriodicInt`, it manages to generate
-branchless code when constants that branches depend on are known at compile-time.
+branchless code when constants that branches depend on are known at compile-time.  Though it can produce straight-line
+code (even if source code contains branches), the generated machine code is huge: 32-sorter is > 1kB in size.
 
 # Benchmarks
 

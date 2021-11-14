@@ -36,7 +36,7 @@ namespace SortingNetworks
             ReversePermutation = Vector256.Create(7, 6, 5, 4, 3, 2, 1, 0);
         }
 
-        // This is the last size that can be reasonably inlined due to code size and # of registers.
+        // This is the last size that can be reasonably inlined due to code size (> 1kB of straight-line code) and # of used registers.
         [MethodImpl(MethodImplOptions.AggressiveOptimization)]
         public unsafe void Sort32(int* data) {
             var v0 = Avx.LoadVector256(data + 0);
