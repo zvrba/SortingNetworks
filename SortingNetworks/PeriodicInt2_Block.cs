@@ -10,6 +10,28 @@ namespace SortingNetworks
     public partial class PeriodicInt2
     {
         /// <summary>
+        /// Block for sorting one vector of 16 elements (two registers).
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
+        void Block_16_1(int p, ref V _v0, ref V _v1) {
+            V v0 = _v0, v1, m;
+
+            v1 = Avx2.PermuteVar8x32(_v1, ReversePermutation);
+            m = Avx2.Max(v0, v1);
+            v0 = Avx2.Min(v0, v1);
+            v1 = Avx2.PermuteVar8x32(m, ReversePermutation);
+            if (p == 1)
+                goto done;
+
+            Block_8_1(p - 1, ref v0);
+            Block_8_1(p - 1, ref v1);
+            
+        done:
+            _v0 = v0;
+            _v1 = v1;
+        }
+
+        /// <summary>
         /// Block for sorting one vector of 8 elements.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
@@ -28,6 +50,7 @@ namespace SortingNetworks
                 goto done;
 
             Block_4_2(p - 1, ref v0);
+        
         done:
             _v = v0;
         }
@@ -47,10 +70,8 @@ namespace SortingNetworks
             m = Avx2.CompareGreaterThan(v0, v1);
             m = Avx2.Xor(m, AlternatingMaskHi64);
             v0 = Avx2.BlendVariable(v0, v1, m);
-            if (p == 1) {
-                _v = v0;
-                return;
-            }
+            if (p == 1)
+                goto done;
 
             // PHASE2:
             // 3210
@@ -59,17 +80,10 @@ namespace SortingNetworks
             v1 = Avx2.Shuffle(v0, 0b10110001);  // 2301
             m = Avx2.CompareGreaterThan(v0, v1);
             m = Avx2.Xor(m, AlternatingMaskHi32);
-            _v = Avx2.BlendVariable(v0, v1, m);
-        }
-
-        /// <summary>
-        /// Swaps elements of <paramref name="lo"/> and <paramref name="hi"/> where <paramref name="mask"/> is 1. 
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
-        static void Swap(ref V lo, ref V hi, V mask) {
-            var t = Avx2.BlendVariable(lo, hi, mask);
-            lo = Avx2.BlendVariable(hi, lo, mask);
-            hi = t;
+            v0 = Avx2.BlendVariable(v0, v1, m);
+        
+        done:
+            _v = v0;
         }
     }
 }

@@ -41,6 +41,8 @@ namespace SortingNetworks
                 return new UnsafeSort<int>(length, p.Sort4);
             if (length == 8)
                 return new UnsafeSort<int>(length, p.Sort8);
+            if (length == 16)
+                return new UnsafeSort<int>(length, p.Sort16);
 
             throw new ArgumentOutOfRangeException(nameof(length));
         }

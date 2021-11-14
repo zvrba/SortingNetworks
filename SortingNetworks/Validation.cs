@@ -9,12 +9,15 @@ namespace SortingNetworks
     {
         /// <summary>
         /// Validates <paramref name="sort"/> by exploiting theorem Z of TAOCOP section 5.3.4: it is
-        /// sufficient to check that all 0-1 sequences (2^16 of them) are sorted by the network.
-        /// Only length of up to <c>2^28</c> are accepted.
+        /// sufficient to check that all 0-1 sequences (2^N of them) are sorted by the network.
+        /// Only lengths of up to <c>28</c> are accepted.
         /// </summary>
+        /// <exception cref="ArgumentOutOfRangeException">Sorter's length is larger than 28.</exception>
+        /// <exception cref="NotImplementedException">Validation has failed.</exception>
         public static unsafe void Check(UnsafeSort<int> sort) {
             if (sort.Length > 28)
-                throw new ArgumentException($"The sorter's sequence length {sort.Length} is too large.  Max acceptable value is 28.");
+                throw new ArgumentOutOfRangeException($"The sorter's sequence length {sort.Length} is too large.  Max acceptable value is 28.");
+            
             var bits = new int[sort.Length];
             var c = new int[2];
 
@@ -28,12 +31,12 @@ namespace SortingNetworks
                     sort.Sorter(b);
                     
                     if (!IsSorted(bits))
-                        throw new InvalidOperationException($"Sorting failed for bit pattern {i:X8}.");
+                        throw new NotImplementedException($"Sorting failed for bit pattern {i:X8}.");
 
                     foreach (var bit in bits)
                         --c[bit];
                     if (c[0] != 0 || c[1] != 0)
-                        throw new InvalidOperationException($"Result is not a permutation for bit pattern {i:X8}.");
+                        throw new NotImplementedException($"Result is not a permutation for bit pattern {i:X8}.");
                 }
             }
         }

@@ -8,26 +8,50 @@ namespace SNBenchmark
     unsafe class Program
     {
         static void Main(string[] args) {
-            var z = SortingNetworks.UnsafeSort<int>.CreateInt(8);
-#if false
-            var d = new int[] { 0, 1, 2, 3, 4, 5, 6, 7 };
+            if (args.Length == 0)
+                Usage();
+
+            if (args[0] == "V") {
+                Validate();
+            }
+            else if (args[0] == "B") {
+                var config = ManualConfig.Create(DefaultConfig.Instance)
+                        .WithOptions(ConfigOptions.StopOnFirstError | ConfigOptions.JoinSummary);
+                var args1 = new string[args.Length - 1];
+                Array.Copy(args, 1, args1, 0, args.Length - 1);
+                BenchmarkSwitcher.FromAssembly(typeof(Program).Assembly).Run(args1);
+            }
+            else {
+                Usage();
+            }
+
+            Environment.Exit(0);
+        }
+
+        static void Usage() {
+            Console.WriteLine("USAGE: {V | B} [argument...]");
+            Console.WriteLine("V validates sorting methods for all sizes up to 28.");
+            Console.WriteLine("B runs benchmarks with arguments following it.");
+            Environment.Exit(0);
+        }
+
+        static unsafe void Validate() {
+            var d = new int[16];
+            for (int i = 0; i < 16; ++i) d[i] = i;
+            var z = SortingNetworks.UnsafeSort<int>.CreateInt(16);
             fixed (int* p = d)
                 z.Sorter(p);
-#endif
-            SortingNetworks.Validation.Check(z);
-            Environment.Exit(0);
+            Validate(z);
+        }
 
-
-#if false
-            var z = new IntRandBenchmark32();
-            z.NetworkSort();
-#endif
-            
-            var config = ManualConfig.Create(DefaultConfig.Instance)
-                    .WithOptions(ConfigOptions.StopOnFirstError | ConfigOptions.JoinSummary);
-
-            //var s = BenchmarkRunner.Run(typeof(Program).Assembly, config);
-            var s = BenchmarkRunner.Run<DelegateBenchmark>();
+        static void Validate(SortingNetworks.UnsafeSort<int> sorter) {
+            Console.Write($"Validating size {sorter.Length:D2}: ");
+            try {
+                SortingNetworks.Validation.Check(sorter);
+                Console.WriteLine("OK");
+            } catch (Exception e) {
+                Console.WriteLine($"FAILED: {e.Message}");
+            }
         }
 
         static unsafe void TestAESRand() {
