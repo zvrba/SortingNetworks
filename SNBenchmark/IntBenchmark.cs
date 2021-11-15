@@ -6,15 +6,16 @@ namespace SNBenchmark
     public class IntBenchmark
     {
         readonly Generators generators = new Generators();
-        
         Action<int[]> g;
         SortingNetworks.UnsafeSort<int> n;
         int[] d;
 
-        [Params(4, 8, 16, 32)]
+        //[Params(4, 8, 16, 32)]
+        [Params(16)]
         public int Size { get; set; }
 
-        [Params("Asc", "Desc", "Rand")]
+        //[Params("Asc", "Desc", "Rand")]
+        [Params("Rand")]
         public string Pattern { get; set; }
 
         [GlobalSetup]
@@ -22,11 +23,35 @@ namespace SNBenchmark
             switch (Pattern) {
             case "Asc": g = generators.Ascending; break;
             case "Desc": g = generators.Descending; break;
-            case "Rand": g = generators.Random; break;
+            case "Rand": g = generators.FisherYates; break;
             default: throw new ArgumentOutOfRangeException(nameof(Pattern));
             }
             n = SortingNetworks.UnsafeSort.CreateInt(Size);
             d = new int[Size];
+            Filler();
+        }
+
+        // Also used to simulate sorting.
+        void Filler() {
+            for (int i = 0; i < d.Length; ++i)
+                d[i] = i;
+        }
+
+        void ArraySorter() => Array.Sort(d);
+        
+        unsafe void NetworkSorter() {
+            fixed (int* p = d) n.Sort(p);
+        }
+
+        void Template(Action sorter, string what) {
+            g(d);
+            sorter();
+            // Should leave the array sorted so no need to reinitialize it for the next iteration.
+            int i;
+            for (i = 0; i < d.Length && d[i] == i; ++i)
+                ;   // no body
+            if (i < d.Length)
+                Environment.FailFast(what);
         }
 
         /// <summary>
@@ -34,32 +59,15 @@ namespace SNBenchmark
         /// The first and last step are common for all benchmarks.
         /// </summary>
         [Benchmark(Baseline = true)]
-        public void NoSort() {
-            g(d);
-            for (int i = 0; i < d.Length; ++i)   // Simulate sorting.
-                d[i] = i;
-            if (!Validation.IsSorted(d))
-                Environment.FailFast("Unsorted [Baseline].");
-        }
+        public void NoSort() => Template(Filler, "Unsorted [Baseline].");
 
         /// <summary>
         /// Sorting by using <c>Array.Sort()</c>.
         /// </summary>
         [Benchmark]
-        public void ArraySort() {
-            g(d);
-            Array.Sort(d);
-            if (!Validation.IsSorted(d))
-                Environment.FailFast("Unsorted [ArraySort].");
-        }
+        public void ArraySort() => Template(ArraySorter, "Unsorted [ArraySort].");
 
         [Benchmark]
-        public unsafe void NetworkSort() {
-            g(d);
-            fixed (int* p = d)
-                n.Sort(p);
-            if (!Validation.IsSorted(d))
-                Environment.FailFast("Unsorted [NetworkSort].");
-        }
+        public unsafe void NetworkSort() => Template(NetworkSorter, "Unsorted [NetworkSort].");
     }
 }

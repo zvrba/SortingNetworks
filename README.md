@@ -13,6 +13,10 @@ a C++ compiler.
 - Implement validation of "truncated" sorters.
 - Add floating-point sorters.  This is mostly a routine rewrite.
 
+## Changes since v1
+
+- Implemented Fisher-Yates shuffle; it is now used in benchmarks for more reliable validation of sorters.
+
 # Project structure
 
 The projects are developed with Visual Studio 2019 and target netcore3.1.  The solution consists of two projects.

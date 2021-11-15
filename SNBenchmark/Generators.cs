@@ -1,6 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
+using System.Runtime.Intrinsics;
+using System.Runtime.Intrinsics.X86;
 
 namespace SNBenchmark
 {
@@ -33,6 +33,31 @@ namespace SNBenchmark
             fixed (int* p = data) {
                 for (int i = 0; i < data.Length / 4; ++i)
                     rng.Get4(p + 4 * i);
+            }
+        }
+
+        /// <summary>
+        /// Rearranges the existing contents of <paramref name="data"/> according to a random permutation.
+        /// </summary>
+        public unsafe void FisherYates(int[] data) {
+            var r = stackalloc uint[4]; // Randomness
+            int k = 4;                  // Randomness is initially used up. j is temp.
+            int j;
+            Vector128<uint> ar;
+            
+            // Use pointer throughout to avoid bound checks.
+            // Also, we're jumping around the array so the direction of the iteration doesn't matter.
+            fixed (int* p = data) {
+                for (int i = data.Length - 1; i > 0; --i) {
+                    // Generate randomness if empty.
+                    if (k == 4) {
+                        ar = rng.Get4().AsUInt32();
+                        Sse2.Store(r, ar);
+                        k = 0;
+                    }
+                    j = (int)(r[k++] % (i + 1));    // Random int between [0, i]
+                    (p[i], p[j]) = (p[j], p[i]);    // Exchange.
+                }
             }
         }
     }
