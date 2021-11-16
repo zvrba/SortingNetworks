@@ -15,4 +15,10 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Compile Remove="Attic\**" />
+    <EmbeddedResource Remove="Attic\**" />
+    <None Remove="Attic\**" />
+  </ItemGroup>
+
 </Project>

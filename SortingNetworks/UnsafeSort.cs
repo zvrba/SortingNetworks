@@ -15,8 +15,10 @@ namespace SortingNetworks
         /// </summary>
         /// <param name="length">
         /// Maximum array length supported by the sorter.  Note that a "big" sorter cannot sort arbitrarily small arrays;
-        /// <see cref="UnsafeSort{T}.MinLength"/>.
+        /// <see cref="UnsafeSort{T}.MinLength"/>.  If length is greater than 32, length will be truncated to the NEXT HIGHER
+        /// power of two.
         /// </param>
+        /// <seealso cref="UnsafeSort{T}"/>
         public static UnsafeSort<int> CreateInt(int length) {
             if (length <= 4)
                 return new Int4Sorter(PeriodicInt);
@@ -26,21 +28,28 @@ namespace SortingNetworks
                 return new Int16Sorter(PeriodicInt);
             if (length <= 32)
                 return new Int32Sorter(PeriodicInt);
-            throw new ArgumentOutOfRangeException(nameof(length), "Largest supported length is 32.");
+            if (length <= 1 << 20) {
+                length = 1 << (int)Math.Ceiling(Math.Log2(length - 1));
+                return new IntBigSorter(PeriodicInt, length);
+            }
+            throw new ArgumentOutOfRangeException(nameof(length));
         }
     }
 
     /// <summary>
     /// Provides methods for sorting "small" arrays of ints or floats.  NB! All methods taking pointer arguments require
-    /// that the allocated size is correct wrt. the implied or specified length.  Otherwise UNDEFINED BEHAVIOR occurs: data
-    /// corruption or crash.
+    /// that the allocated size is correct wrt. the implied or specified length.  Also, the input length must conform to
+    /// <see cref="MinLength"/> and <see cref="MaxLength"/> limits.  Otherwise UNDEFINED BEHAVIOR occurs: data corruption
+    /// or crash.
     /// </summary>
     /// <typeparam name="T">The type of array elements.</typeparam>
+    /// <remarks>
+    /// </remarks>
     public abstract class UnsafeSort<T> where T : unmanaged
     {
-        private protected UnsafeSort(PeriodicInt periodicInt, int maxLength) {
+        private protected UnsafeSort(PeriodicInt periodicInt, int minLength, int maxLength) {
             PeriodicInt = periodicInt;
-            MinLength = Math.Max(maxLength / 2 + 1, Math.Min(maxLength, 8));
+            MinLength = minLength;
             MaxLength = maxLength;
         }
 
