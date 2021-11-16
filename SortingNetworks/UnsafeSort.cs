@@ -29,8 +29,8 @@ namespace SortingNetworks
             if (length <= 32)
                 return new Int32Sorter(PeriodicInt);
             if (length <= 1 << 20) {
-                length = 1 << (int)Math.Ceiling(Math.Log2(length - 1));
-                return new IntBigSorter(PeriodicInt, length);
+                var logLength = (int)Math.Ceiling(Math.Log2(length - 1));
+                return new IntBigSorter(PeriodicInt, logLength);
             }
             throw new ArgumentOutOfRangeException(nameof(length));
         }
