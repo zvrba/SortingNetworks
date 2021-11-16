@@ -4,31 +4,6 @@ using BenchmarkDotNet.Attributes;
 namespace SNBenchmark
 {
     [BenchmarkCategory("Invocation")]
-    public class ExpressionInvocationBenchmark
-    {
-        readonly int[] data = new int[16];
-        readonly SortingNetworks.Attic.Periodic16Expr expr = new SortingNetworks.Attic.Periodic16Expr();
-
-        // Sets up data array to be sorted so as to have minimum possible data-dependent variation.
-        [GlobalSetup]
-        public void GlobalSetup() {
-            for (int i = 0; i < data.Length; ++i) data[i] = i;
-        }
-
-        [Benchmark]
-        public unsafe void DirectInvoke() {
-            fixed (int* p = data)
-                SortingNetworks.Attic.Periodic16Branchless.Sort(p);
-        }
-
-        [Benchmark]
-        public unsafe void ExpressionInvoke() {
-            fixed (int* p = data)
-                expr.Sort(p);
-        }
-    }
-
-    [BenchmarkCategory("Invocation")]
     public class InvocationBenchmark
     {
         readonly int[] data = new int[16];
@@ -52,4 +27,31 @@ namespace SNBenchmark
                 csorter.Sort16(p);
         }
     }
+
+#if false   // Obsoleted, "Attic" is no longer included in build of SortingNetworks.
+    [BenchmarkCategory("Invocation")]
+    public class ExpressionInvocationBenchmark
+    {
+        readonly int[] data = new int[16];
+        readonly SortingNetworks.Attic.Periodic16Expr expr = new SortingNetworks.Attic.Periodic16Expr();
+
+        // Sets up data array to be sorted so as to have minimum possible data-dependent variation.
+        [GlobalSetup]
+        public void GlobalSetup() {
+            for (int i = 0; i < data.Length; ++i) data[i] = i;
+        }
+
+        [Benchmark]
+        public unsafe void DirectInvoke() {
+            fixed (int* p = data)
+                SortingNetworks.Attic.Periodic16Branchless.Sort(p);
+        }
+
+        [Benchmark]
+        public unsafe void ExpressionInvoke() {
+            fixed (int* p = data)
+                expr.Sort(p);
+        }
+    }
+#endif
 }

@@ -8,6 +8,9 @@ namespace SNBenchmark
     unsafe class Program
     {
         static void Main(string[] args) {
+            TestIntBig();
+            Environment.Exit(0);
+
             if (args.Length == 0)
                 Usage();
 
@@ -33,6 +36,19 @@ namespace SNBenchmark
             Console.WriteLine("V validates sorting methods for all sizes up to 28.");
             Console.WriteLine("B runs benchmarks with arguments following it.");
             Environment.Exit(0);
+        }
+
+        static void TestIntBig() {
+            var g = new Generators();
+            var d = new int[1 << 16];
+            var n = SortingNetworks.UnsafeSort.CreateInt(d.Length);
+            for (int i = 0; i < d.Length; ++i) d[i] = i;
+            g.FisherYates(d);
+            fixed (int* p = d)
+                n.Sort(p);
+            for (int i = 0; i < d.Length; ++i)
+                if (d[i] != i)
+                    throw new InvalidOperationException("Unsorted.");
         }
 
         static unsafe void Validate() {
