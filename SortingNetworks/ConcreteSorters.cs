@@ -62,14 +62,14 @@ namespace SortingNetworks
             int split = 1;
             for (;  p > 0; --p, ++split, size /= 2) {
                 for (int i = 0; i < split; ++i)
-                    Phase(p, b, b + i * size);
+                    Phase(p, b + i * size, b + (i + 1) * size);
             }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
         unsafe void Phase(int p, int* b, int* e) {
             if (e - b >= 32) {
-                for (; e > b; b += 32, e -= 32)
+                for (; e > b; b += 16, e -= 16)
                     PeriodicInt.Phase_N_32(b, e);
             }
             else {
@@ -77,7 +77,7 @@ namespace SortingNetworks
                 var v1 = Avx.LoadVector256(b + 8);
                 PeriodicInt.Block_16_1(p, ref v0, ref v1);
                 Avx.Store(b, v0);
-                Avx.Store(b, v1);
+                Avx.Store(b + 8, v1);
             }
         }
     }
