@@ -60,7 +60,7 @@ namespace SortingNetworks
         unsafe void Block(int p, int* b, int* e) {
             int size = (int)(e - b);
             int split = 1;
-            for (;  p > 0; --p, ++split, size /= 2) {
+            for (;  p > 0 && size >= 16; --p, split *= 2, size /= 2) {
                 for (int i = 0; i < split; ++i)
                     Phase(p, b + i * size, b + (i + 1) * size);
             }
