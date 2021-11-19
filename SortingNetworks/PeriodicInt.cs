@@ -14,7 +14,7 @@ namespace SortingNetworks
     /// <remarks>
     /// You're not expected to understand this code unless you have read the paper by Dowd et al.
     /// </remarks>
-    public partial class PeriodicInt
+    public unsafe partial class PeriodicInt
     {
         public readonly V Zero;                    // 00000000
         public readonly V Complement;              // FFFFFFFF
@@ -23,7 +23,8 @@ namespace SortingNetworks
         public readonly V AlternatingMaskHi64;     // FF00FF00
         public readonly V AlternatingMaskHi32;     // F0F0F0F0
         public readonly V Max;                     // int.MaxValue in each element
-        public readonly V ReversePermutation;      // Input to VPERMD that reverses all 8 ints 
+        public readonly V ReversePermutation;      // Input to VPERMD that reverses all 8 ints
+        public readonly V LoadMask;                // Input to AlignRight for creating load mask
 
         public PeriodicInt() {
             Zero = V.Zero;
