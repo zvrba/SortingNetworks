@@ -7,7 +7,7 @@ namespace SortingNetworks
 {
     using V = Vector256<int>;
 
-    class IntSorter : UnsafeSort<int>
+    sealed unsafe class IntSorter : UnsafeSort<int>
     {
         readonly V Zero;                    // 00000000
         readonly V Complement;              // FFFFFFFF
@@ -18,7 +18,7 @@ namespace SortingNetworks
         readonly V Max;                     // int.MaxValue in each element
         readonly V ReversePermutation;      // Input to VPERMD that reverses all 8 ints
 
-        internal IntSorter() : base(null, 1, int.MaxValue) {
+        internal IntSorter(int maxLength) {
             Zero = V.Zero;
             Complement = Avx2.CompareEqual(Zero, Zero);
             AlternatingMaskHi128 = Vector256.Create(0L, 0L, -1L, -1L).AsInt32();
@@ -27,14 +27,67 @@ namespace SortingNetworks
             AlternatingMaskHi32 = Avx2.Xor(Complement.AsInt64(), Avx2.ShiftRightLogical(Complement.AsInt64(), 32)).AsInt32();
             Max = Vector256.Create(int.MaxValue);
             ReversePermutation = Vector256.Create(7, 6, 5, 4, 3, 2, 1, 0);
+
+            if (maxLength <= 8) {
+                MinLength = 1;
+                MaxLength = 8;
+                Sorter = Sort8;
+            }
+            else if (maxLength <= 16) {
+                MinLength = 9;
+                MaxLength = 16;
+                Sorter = Sort16;
+            }
+            else {
+                MinLength = 16;
+                MaxLength = 1 << 24;
+                Sorter = Sort;
+                if (maxLength > MaxLength)
+                    throw new ArgumentOutOfRangeException("Maximum supported length is 2^24.");
+            }
         }
 
-        public override unsafe void Sort(int* data) {
-            throw new NotImplementedException();
+        [MethodImpl(MethodImplOptions.AggressiveOptimization)]
+        unsafe void Sort8(int* data, int c) {
+            var v = Load8(data, c);
+            Block8(2, ref v);
+            Block8(3, ref v);
+            Block8(3, ref v);
+            Store8(data, v, c);
         }
 
-        public override unsafe void Sort(int* data, int c) {
-            throw new NotImplementedException();
+        [MethodImpl(MethodImplOptions.AggressiveOptimization)]
+        unsafe void Sort16(int* data, int c) {
+            var v0 = Avx.LoadVector256(data);
+            var v1 = Load8(data + 8, c - 8);
+            Block16(2, ref v0, ref v1);
+            Block16(3, ref v0, ref v1);
+            Block16(4, ref v0, ref v1);
+            Block16(4, ref v0, ref v1);
+            Avx.Store(data, v0);
+            Store8(data + 8, v1, c - 8);
+        }
+
+        unsafe void Sort(int* data, int c) {
+            var (upsize, log2c) = UpSize(c);
+            for (int i = 0, p = 2; i < log2c; ++i, ++p)
+                Block(p < log2c ? p : log2c, data, data + c, upsize);
+
+            static (int upsize, int log2c) UpSize(int size) {
+                --size;
+                size |= size >> 1;
+                size |= size >> 2;
+                size |= size >> 4;
+                size |= size >> 8;
+                size |= size >> 16;
+
+                var upsize = size + 1;
+                int log2c = -1;
+                for (size = upsize; size > 0; ++log2c, size >>= 1)
+                    ;
+
+                return (upsize, log2c);
+            }
         }
 
         // b and e point to the true range to be sorted.  upsize is (e-b) rounded up to a power of two.

@@ -10,10 +10,11 @@ namespace SNBenchmark
         SortingNetworks.UnsafeSort<int> n;
         int[] d;
 
-        [Params(4, 8, 16, 32)]
+        [Params(4, 8, 16, 32, 64, 128, 256, 512, 1024)]
         public int Size { get; set; }
 
-        [Params("Asc", "Desc", "Rand")]
+        //[Params("Asc", "Desc", "Rand")]
+        [Params("Rand")]
         public string Pattern { get; set; }
 
         [GlobalSetup]

@@ -8,8 +8,10 @@ namespace SNBenchmark
     unsafe class Program
     {
         static void Main(string[] args) {
+#if false
             TestIntBig();
             Environment.Exit(0);
+#endif
 
             if (args.Length == 0)
                 Usage();
@@ -18,6 +20,8 @@ namespace SNBenchmark
                 Validate();
             }
             else if (args[0] == "B") {
+                //var ss = new BenchmarkDotNet.Reports.BenchmarkReport
+                // TODO: SummaryStyle; InvariantCulture
                 var config = ManualConfig.Create(DefaultConfig.Instance)
                         .WithOptions(ConfigOptions.StopOnFirstError | ConfigOptions.JoinSummary);
                 var args1 = new string[args.Length - 1];
@@ -40,7 +44,7 @@ namespace SNBenchmark
 
         static void TestIntBig() {
             var g = new Generators();
-            var d = new int[1 << 16];
+            var d = new int[1024];
             var n = SortingNetworks.UnsafeSort.CreateInt(d.Length);
             for (int i = 0; i < d.Length; ++i) d[i] = i;
             g.FisherYates(d);
