@@ -102,8 +102,6 @@ namespace SortingNetworks
 
                     var pe = pb + upsize;
                     var c = (int)(pe > e ? e - pb : pe - pb);
-                    if (c < upsize / 2)
-                        break;
                     Phase(p, pb, c, upsize);
                 }
             }
@@ -112,7 +110,7 @@ namespace SortingNetworks
         // b points to block start, c is the actual # of elements in the block and upsize is c rounded up to power of two.
         [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
         unsafe void Phase(int p, int* b, int c, int upsize) {
-            if (upsize > 16) {
+            if (c > 16) {
                 var i0 = (upsize - c) >> 3;
                 var c0 = (upsize - c) & 7;
 
@@ -128,7 +126,7 @@ namespace SortingNetworks
                 for (;  b < e; b += 8, e -= 8) 
                     PhaseStep(b, e);
             }
-            else if (upsize > 8) {
+            else if (c > 8) {
                 PhaseStep(p, b, b + 8, c);
             }
             else {
