@@ -29,7 +29,7 @@ namespace SortingNetworks
             ReversePermutation = Vector256.Create(7, 6, 5, 4, 3, 2, 1, 0);
 
             if (maxLength <= 8) {
-                MinLength = 1;
+                MinLength = 4;
                 MaxLength = 8;
                 Sorter = Sort8;
             }
@@ -222,13 +222,13 @@ namespace SortingNetworks
 
         [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
         unsafe V Load8(int* v, int c) {
-            var m = Avx2.AlignRight(AlternatingMaskLo128, Complement, (byte)(8 - c));
+            var m = Avx2.AlignRight(AlternatingMaskLo128, Complement, (byte)((8 - c) << 2));
             return Avx2.BlendVariable(Max, Avx2.MaskLoad(v, m), m);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
         unsafe void Store8(int* a, V v, int c) {
-            var m = Avx2.AlignRight(AlternatingMaskLo128, Complement, (byte)(8 - c));
+            var m = Avx2.AlignRight(AlternatingMaskLo128, Complement, (byte)((8 - c) << 2));
             Avx2.MaskStore(a, m, v);
         }
     }
