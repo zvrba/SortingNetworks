@@ -102,7 +102,8 @@ namespace SortingNetworks
 
                     var pe = pb + upsize;
                     var c = (int)(pe > e ? e - pb : pe - pb);
-                    if (pe > e) pe = e;
+                    if (c < upsize / 2)
+                        break;
                     Phase(p, pb, c, upsize);
                 }
             }
@@ -115,11 +116,11 @@ namespace SortingNetworks
                 var i0 = (upsize - c) >> 3;
                 var c0 = (upsize - c) & 7;
 
-                b += 8 * i0;
                 int* e = b + upsize - 8 * (i0 + 1);
+                b += 8 * i0;
 
                 if (c0 != 0) {
-                    PhaseStep(1, b, e, 8 + c0);
+                    PhaseStep(1, b, e, 16 - c0);
                     b += 8;
                     e -= 8;
                 }
@@ -152,7 +153,7 @@ namespace SortingNetworks
             var v1 = Load8(hi, c - 8);
             Block16(p, ref v0, ref v1);
             Avx.Store(lo, v0);
-            Store8(hi, v1, c);
+            Store8(hi, v1, c - 8);
         }
 
         // No inlining; executed at most once.
