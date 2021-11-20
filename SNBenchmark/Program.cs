@@ -45,17 +45,13 @@ namespace SNBenchmark
         static void Validate() {
             for (int size = 4; size <= 32; ++size) {
                 var n = SortingNetworks.UnsafeSort.CreateInt(size);
-                Validate(n, size);
-            }
-        }
-
-        static void Validate(SortingNetworks.UnsafeSort<int> sorter, int size) {
-            Console.Write($"Validating size {sorter.MaxLength:D2}: ");
-            try {
-                Validation.Check(sorter, size);
-                Console.WriteLine("OK");
-            } catch (Exception e) {
-                Console.WriteLine($"FAILED: {e.Message}");
+                Console.Write($"Validating size {size:D2}: ");
+                try {
+                    Validation.Check(n, size);
+                    Console.WriteLine("OK");
+                } catch (NotImplementedException e) {
+                    Console.WriteLine($"FAILED: {e.Message}");
+                }
             }
         }
 
