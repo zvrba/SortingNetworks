@@ -94,7 +94,7 @@ namespace SortingNetworks
         [MethodImpl(MethodImplOptions.AggressiveOptimization)]
         unsafe void Block(int p, int* b, int* e, int upsize) {
             int split = 1;
-            for (; p > 0 && upsize >= 8; --p, split *= 2, upsize /= 2) {
+            for (; p > 0; --p, split *= 2, upsize = upsize > 8 ? upsize / 2 : 8) {
                 for (int i = 0; i < split; ++i) {
                     var pb = b + i * upsize;
                     if (pb >= e)    // We're out of bounds of the array, no more work to do in this inner loop.
