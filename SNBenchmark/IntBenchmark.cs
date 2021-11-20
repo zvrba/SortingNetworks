@@ -39,7 +39,7 @@ namespace SNBenchmark
         void ArraySorter() => Array.Sort(d);
         
         unsafe void NetworkSorter() {
-            fixed (int* p = d) n.Sort(p);
+            fixed (int* p = d) n.Sorter(p, d.Length);
         }
 
         void Template(Action sorter, string what) {

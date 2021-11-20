@@ -12,31 +12,34 @@ namespace SNBenchmark
         /// sufficient to check that all 0-1 sequences (2^N of them) are sorted by the network.
         /// Only lengths of up to <c>28</c> are accepted.
         /// </summary>
+        /// <param name="sort">An instance of sorting network to test.</param>
+        /// <param name="size">Element count to test with.</param>
         /// <exception cref="ArgumentOutOfRangeException">Sorter's length is larger than 28.</exception>
         /// <exception cref="NotImplementedException">Validation has failed.</exception>
-        public static unsafe void Check(SortingNetworks.UnsafeSort<int> sort) {
-            if (sort.MaxLength > 28)
-                throw new ArgumentOutOfRangeException($"The sorter's sequence length {sort.MaxLength} is too large.  Max acceptable value is 28.");
+        public static unsafe void Check(SortingNetworks.UnsafeSort<int> sort, int size) {
+            if (size < 4 || size > 32)
+                throw new ArgumentOutOfRangeException(nameof(size), "Valid range is [4, 32].");
             
-            var bits = new int[sort.MaxLength];
-            var c = new int[2];
-
-            fixed (int* b = bits) {
-                for (int i = 0; i < 1 << sort.MaxLength; ++i) {
-                    for (int j = i, k = 0; k < sort.MaxLength; ++k, j >>= 1) {
-                        bits[k] = j & 1;
-                        ++c[j & 1];
+            var bits = new int[size];
+            
+            fixed (int* pbits = bits) {
+                for (uint i = 0; i <= (1 << size) - 1; ++i) {
+                    int popcnt = 0; // Number of ones in i
+                    for (uint j = i, k = 0; k < size; ++k, j >>= 1) {
+                        int b = (int)(j & 1);
+                        pbits[k] = b;
+                        popcnt += b;
                     }
                     
-                    sort.Sort(b);
-                    
-                    if (!IsSorted(bits))
-                        throw new NotImplementedException($"Sorting failed for bit pattern {i:X8}.");
+                    sort.Sorter(pbits, size);
 
-                    foreach (var bit in bits)
-                        --c[bit];
-                    if (c[0] != 0 || c[1] != 0)
-                        throw new NotImplementedException($"Result is not a permutation for bit pattern {i:X8}.");
+                    for (int k = 0; k < size - popcnt; ++k)
+                        if (pbits[k] != 0)
+                            throw new NotImplementedException($"Result is not a permutation for bit pattern {i:X8}.");
+                    
+                    for (int k = size - popcnt; k < size; ++k)
+                        if (pbits[k] != 1)
+                            throw new NotImplementedException($"Result is not a permutation for bit pattern {i:X8}.");
                 }
             }
         }

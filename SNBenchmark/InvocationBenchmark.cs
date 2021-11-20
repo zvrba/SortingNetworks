@@ -18,7 +18,7 @@ namespace SNBenchmark
         [Benchmark]
         public unsafe void AbstractInvoke() {
             fixed (int* p = data)
-                asorter.Sort(p);
+                asorter.Sorter(p, data.Length);
         }
 
         [Benchmark]

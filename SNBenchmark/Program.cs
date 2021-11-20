@@ -42,31 +42,17 @@ namespace SNBenchmark
             Environment.Exit(0);
         }
 
-        static void TestIntBig() {
-            var g = new Generators();
-            var d = new int[1024];
-            var n = SortingNetworks.UnsafeSort.CreateInt(d.Length);
-            for (int i = 0; i < d.Length; ++i) d[i] = i;
-            g.FisherYates(d);
-            fixed (int* p = d)
-                n.Sort(p);
-            for (int i = 0; i < d.Length; ++i)
-                if (d[i] != i)
-                    throw new InvalidOperationException("Unsorted.");
-        }
-
-        static unsafe void Validate() {
-            for (int size = 4; size <= 16; size *= 2) {
-                var d = new int[size];
+        static void Validate() {
+            for (int size = 4; size <= 32; ++size) {
                 var n = SortingNetworks.UnsafeSort.CreateInt(size);
-                Validate(n);
+                Validate(n, size);
             }
         }
 
-        static void Validate(SortingNetworks.UnsafeSort<int> sorter) {
+        static void Validate(SortingNetworks.UnsafeSort<int> sorter, int size) {
             Console.Write($"Validating size {sorter.MaxLength:D2}: ");
             try {
-                Validation.Check(sorter);
+                Validation.Check(sorter, size);
                 Console.WriteLine("OK");
             } catch (Exception e) {
                 Console.WriteLine($"FAILED: {e.Message}");
