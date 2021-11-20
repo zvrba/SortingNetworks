@@ -113,20 +113,54 @@ namespace SortingNetworks
         unsafe void Phase(int p, int* b, int c, int upsize) {
             if (upsize > 16) {
                 var i0 = (upsize - c) >> 3;
-                var r0 = (upsize - c) & 7;
+                var c0 = (upsize - c) & 7;
+
+                b += 8 * i0;
+                int* e = b + upsize - 8 * (i0 + 1);
+
+                if (c0 != 0) {
+                    PhaseStep(1, b, e, 8 + c0);
+                    b += 8;
+                    e -= 8;
+                }
+
+                for (;  b < e; b += 8, e -= 8) 
+                    PhaseStep(b, e);
             }
             else if (upsize > 8) {
-                var v0 = Avx.LoadVector256(b);
-                var v1 = Load8(b + 8, c - 8);
-                Block16(p, ref v0, ref v1);
-                Avx.Store(b, v0);
-                Store8(b + 8, v1, c - 8);
+                PhaseStep(p, b, b + 8, c);
             }
             else {
-                var v = Load8(b, c);
-                Block8(p, ref v);
-                Store8(b, v, c);
+                Block8(p, b, c);
             }
+        }
+
+        // Full size (16) compare-exchange.
+        [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
+        unsafe void PhaseStep(int* lo, int* hi) {
+            var v0 = Avx.LoadVector256(lo);
+            var v1 = Avx.LoadVector256(hi);
+            Block16(1, ref v0, ref v1);
+            Avx.Store(lo, v0);
+            Avx.Store(hi, v1);
+        }
+
+        // No inlining; executed at most once.
+        [MethodImpl(MethodImplOptions.AggressiveOptimization)]
+        unsafe void PhaseStep(int p, int* lo, int* hi, int c) {
+            var v0 = Avx.LoadVector256(lo);
+            var v1 = Load8(hi, c - 8);
+            Block16(p, ref v0, ref v1);
+            Avx.Store(lo, v0);
+            Store8(hi, v1, c);
+        }
+
+        // No inlining; executed at most once.
+        [MethodImpl(MethodImplOptions.AggressiveOptimization)]
+        unsafe void Block8(int p, int* b, int c) {
+            var v = Load8(b, c);
+            Block8(p, ref v);
+            Store8(b, v, c);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
