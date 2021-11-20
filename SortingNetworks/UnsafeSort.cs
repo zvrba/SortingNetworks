@@ -57,7 +57,8 @@ namespace SortingNetworks
         public int MaxLength { get; protected set; }
 
         /// <summary>
-        /// Delegate that performs the actual sorting.
+        /// Delegate that performs the actual sorting.  WARNING!  The count argument given to the delegate must be between
+        /// <see cref="MinLength"/> and <see cref="MaxLength"/> (inclusive).  No bounds are checked.
         /// </summary>
         public Sorter<T> Sorter { get; protected set; }
 
