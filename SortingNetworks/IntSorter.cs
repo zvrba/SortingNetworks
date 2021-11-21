@@ -108,8 +108,8 @@ namespace SortingNetworks
             for (; p > 0 && upsize >= 8; --p, split *= 2, upsize /= 2) {
                 for (int i = 0, sb = 0; i < split && sb < c; ++i, sb += upsize) {
                     var sc = upsize;
-                    if ((sb + upsize > c) && (sc = c - sb) <= upsize / 2)
-                        break;  // Phase is a noop in this case.
+                    if (sb + upsize > c)
+                        sc = c - sb;
                     Phase(p, b + sb, sc, upsize);
                 }
             }
@@ -125,7 +125,7 @@ namespace SortingNetworks
                 int* e = b + upsize - 8 * (i0 + 1);
                 b += 8 * i0;
 
-                if (c0 != 0) {
+                if (c0 != 0 && b < e) {
                     PhaseStep(1, b, e, 16 - c0);
                     b += 8;
                     e -= 8;
