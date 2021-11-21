@@ -108,10 +108,9 @@ namespace SortingNetworks
             for (; p > 0 && upsize >= 8; --p, split *= 2, upsize /= 2) {
                 for (int i = 0, sb = 0; i < split && sb < c; ++i, sb += upsize) {
                     var sc = upsize;
-                    if (sb + upsize > c)
-                        sc = c - sb;
-                    if (sc > upsize / 2)    // Else there's nothing to do.
-                        Phase(p, b + sb, sc, upsize);
+                    if ((sb + upsize > c) && (sc = c - sb) <= upsize / 2)
+                        break;  // Phase is a noop in this case.
+                    Phase(p, b + sb, sc, upsize);
                 }
             }
         }
