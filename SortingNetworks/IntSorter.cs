@@ -9,6 +9,7 @@ namespace SortingNetworks
 
     sealed unsafe class IntSorter : UnsafeSort<int>
     {
+        // TODO: Place these inside own unsafe struct.
         readonly V Zero;                    // 00000000
         readonly V Complement;              // FFFFFFFF
         readonly V AlternatingMaskLo128;    // 0000FFFF
@@ -17,6 +18,7 @@ namespace SortingNetworks
         readonly V AlternatingMaskHi32;     // F0F0F0F0
         readonly V Max;                     // int.MaxValue in each element
         readonly V ReversePermutation;      // Input to VPERMD that reverses all 8 ints
+        readonly V[] CountMask;             // For loading 1-8 elements. VPALIGNR requires an immediate constant, which kills perf.
 
         internal IntSorter(int maxLength) {
             Zero = V.Zero;
@@ -27,6 +29,15 @@ namespace SortingNetworks
             AlternatingMaskHi32 = Avx2.Xor(Complement.AsInt64(), Avx2.ShiftRightLogical(Complement.AsInt64(), 32)).AsInt32();
             Max = Vector256.Create(int.MaxValue);
             ReversePermutation = Vector256.Create(7, 6, 5, 4, 3, 2, 1, 0);
+            CountMask = new V[8];
+            CountMask[0] = Complement;
+            CountMask[1] = Vector256.Create(-1, 0, 0, 0, 0, 0, 0, 0);
+            CountMask[2] = Vector256.Create(-1, -1, 0, 0, 0, 0, 0, 0);
+            CountMask[3] = Vector256.Create(-1, -1, -1, 0, 0, 0, 0, 0);
+            CountMask[4] = Vector256.Create(-1, -1, -1, -1, 0, 0, 0, 0);
+            CountMask[5] = Vector256.Create(-1, -1, -1, -1, -1, 0, 0, 0);
+            CountMask[6] = Vector256.Create(-1, -1, -1, -1, -1, -1, 0, 0);
+            CountMask[7] = Vector256.Create(-1, -1, -1, -1, -1, -1, -1, 0);
 
             if (maxLength <= 8) {
                 MinLength = 4;
@@ -70,8 +81,8 @@ namespace SortingNetworks
 
         unsafe void Sort(int* data, int c) {
             var (upsize, log2c) = UpSize(c);
-            for (int i = 0, p = 2; i < log2c; ++i, ++p)
-                Block(p < log2c ? p : log2c, data, data + c, upsize);
+            for (int i = 0; i < log2c; ++i)
+                Block(i + 2 < log2c ? i + 2 : log2c, data, c, upsize);
 
             static (int upsize, int log2c) UpSize(int size) {
                 --size;
@@ -92,17 +103,15 @@ namespace SortingNetworks
 
         // b and e point to the true range to be sorted.  upsize is (e-b) rounded up to a power of two.
         [MethodImpl(MethodImplOptions.AggressiveOptimization)]
-        unsafe void Block(int p, int* b, int* e, int upsize) {
+        unsafe void Block(int p, int* b, int c, int upsize) {
             int split = 1;
-            for (; p > 0; --p, split *= 2, upsize = upsize > 8 ? upsize / 2 : 8) {
-                for (int i = 0; i < split; ++i) {
-                    var pb = b + i * upsize;
-                    if (pb >= e)    // We're out of bounds of the array, no more work to do in this inner loop.
-                        break;
-
-                    var pe = pb + upsize;
-                    var c = (int)(pe > e ? e - pb : pe - pb);
-                    Phase(p, pb, c, upsize);
+            for (; p > 0 && upsize >= 8; --p, split *= 2, upsize /= 2) {
+                for (int i = 0, sb = 0; i < split && sb < c; ++i, sb += upsize) {
+                    var sc = upsize;
+                    if (sb + upsize > c)
+                        sc = c - sb;
+                    if (sc > upsize / 2)    // Else there's nothing to do.
+                        Phase(p, b + sb, sc, upsize);
                 }
             }
         }
@@ -110,7 +119,7 @@ namespace SortingNetworks
         // b points to block start, c is the actual # of elements in the block and upsize is c rounded up to power of two.
         [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
         unsafe void Phase(int p, int* b, int c, int upsize) {
-            if (c > 16) {
+            if (upsize > 8) {
                 var i0 = (upsize - c) >> 3;
                 var c0 = (upsize - c) & 7;
 
@@ -125,9 +134,6 @@ namespace SortingNetworks
 
                 for (;  b < e; b += 8, e -= 8) 
                     PhaseStep(b, e);
-            }
-            else if (c > 8) {
-                PhaseStep(p, b, b + 8, c);
             }
             else {
                 Block8(p, b, c);
@@ -221,13 +227,13 @@ namespace SortingNetworks
 
         [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
         unsafe V Load8(int* v, int c) {
-            var m = Avx2.AlignRight(AlternatingMaskLo128, Complement, (byte)((8 - c) << 2));
+            var m = CountMask[c & 7];
             return Avx2.BlendVariable(Max, Avx2.MaskLoad(v, m), m);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
         unsafe void Store8(int* a, V v, int c) {
-            var m = Avx2.AlignRight(AlternatingMaskLo128, Complement, (byte)((8 - c) << 2));
+            var m = CountMask[c & 7];
             Avx2.MaskStore(a, m, v);
         }
     }
