@@ -8,11 +8,6 @@ namespace SNBenchmark
     unsafe class Program
     {
         static void Main(string[] args) {
-#if false
-            TestIntBig();
-            Environment.Exit(0);
-#endif
-
             if (args.Length == 0)
                 Usage();
 
@@ -43,6 +38,29 @@ namespace SNBenchmark
         }
 
         static void Validate() {
+#if false   // THIS CODE EXISTS ONLY FOR DEBUGGING AND SINGLE-CASE TESTING.
+            var d = new int[11157];
+            int[] dc;
+            var g = new Generators();
+            var nn = SortingNetworks.UnsafeSort.CreateInt(d.Length);
+            for (int i = 0; i < d.Length; ++i) d[i] = i;
+
+            var iteration = 0;
+            while (true) {
+                ++iteration;
+                //if ((iteration % 1000) == 0)
+                //    Console.WriteLine(iteration);
+                g.FisherYates(d);
+                dc = (int[])d.Clone();
+                fixed (int* p = d)
+                    nn.Sorter(p, d.Length);
+                for (int i = 0; i < d.Length; ++i)
+                    if (d[i] != i)
+                        throw new NotImplementedException();
+            }
+
+#else
+
             for (int size = 4; size <= 32; ++size) {
                 var n = SortingNetworks.UnsafeSort.CreateInt(size);
                 Console.Write($"Validating size {size:D2}: ");
@@ -53,6 +71,8 @@ namespace SNBenchmark
                     Console.WriteLine($"FAILED: {e.Message}");
                 }
             }
+
+#endif
         }
 
         static unsafe void TestAESRand() {
