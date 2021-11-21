@@ -3,6 +3,8 @@ using BenchmarkDotNet.Attributes;
 
 namespace SNBenchmark
 {
+    [XmlExporterAttribute.Brief]
+    [XmlExporter(fileNameSuffix: "xml", indentXml: true, excludeMeasurements: true)]
     public class IntBenchmark
     {
         readonly Generators generators = new Generators();
@@ -10,7 +12,7 @@ namespace SNBenchmark
         SortingNetworks.UnsafeSort<int> n;
         int[] d;
 
-        [Params(4, 8, 16, 32, 64, 128, 256, 512, 1024)]
+        [Params(4, 8, 12, 16, 32, 47, 64, 97, 128, 147, 256, 317, 512, 711, 1024, 1943, 2048, 3717, 4096)]
         public int Size { get; set; }
 
         //[Params("Asc", "Desc", "Rand")]
