@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+
 using BenchmarkDotNet.Attributes;
 
 namespace SNBenchmark
@@ -12,7 +14,8 @@ namespace SNBenchmark
         SortingNetworks.UnsafeSort<int> n;
         int[] d;
 
-        [Params(4, 8, 12, 16, 32, 47, 64, 97, 128, 147, 256, 317, 512, 711, 1024, 1943, 2048, 3717, 4096)]
+        //[Params(4, 8, 12, 16, 32, 47, 64, 97, 128, 147, 256, 317, 512, 711, 1024, 1943, 2048, 3717, 4096)]
+        [ParamsSource(nameof(Sizes))]
         public int Size { get; set; }
 
         //[Params("Asc", "Desc", "Rand")]
@@ -70,5 +73,12 @@ namespace SNBenchmark
 
         [Benchmark]
         public unsafe void NetworkSort() => Template(NetworkSorter, "Unsorted [NetworkSort].");
+
+        // The numbers in-between powers of two are deliberately set to odd numbers slightly lower/larger than half the interval.
+        // This to test the sorters for various lengths.
+        public IEnumerable<int> Sizes => new int[] {
+            4, 8, 12, 16, 27, 32, 47, 64, 128, 177, 256, 364, 512, 748, 1024, 2048, 3389, 4096, 6793, 8192, 14289, 16384,
+            32768, 53151, 65536, 96317, 131072, 191217, 262144, 398853, 524288, 719289, 1048576
+        };
     }
 }
