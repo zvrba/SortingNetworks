@@ -169,10 +169,10 @@ namespace SortingNetworks
         unsafe void Block16(int p, ref V _v0, ref V _v1) {
             V v0 = _v0, v1, m;
 
-            v1 = Avx.PermuteVar(_v1, ReversePermutation);
+            v1 = Avx2.PermuteVar8x32(_v1, ReversePermutation);
             m = Avx.Max(v0, v1);
             v0 = Avx.Min(v0, v1);
-            v1 = Avx.PermuteVar(m, ReversePermutation);
+            v1 = Avx2.PermuteVar8x32(m, ReversePermutation);
             if (--p == 0)
                 goto done;
 
@@ -191,7 +191,7 @@ namespace SortingNetworks
             // 76543210
             // 01234567
 
-            v1 = Avx.PermuteVar(v0, ReversePermutation);
+            v1 = Avx2.PermuteVar8x32(v0, ReversePermutation);
             m = Avx.Compare(v0, v1, FloatComparisonMode.OrderedGreaterThanNonSignaling);
             m = Avx.Xor(m, AlternatingMaskHi128);
             v0 = Avx.BlendVariable(v0, v1, m);
