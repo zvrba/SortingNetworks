@@ -30,7 +30,7 @@ namespace SNBenchmark
             case "Rand": g = generators.FisherYates; break;
             default: throw new ArgumentOutOfRangeException(nameof(Pattern));
             }
-            n = SortingNetworks.UnsafeSort.CreateInt(Size);
+            n = SortingNetworks.UnsafeSort<int>.Create(Size);
             d = new int[Size];
             Filler();
         }

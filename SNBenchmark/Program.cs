@@ -11,8 +11,11 @@ namespace SNBenchmark
             if (args.Length == 0)
                 Usage();
 
-            if (args[0] == "V") {
-                Validate();
+            if (args[0] == "VI") {
+                ValidateInt();
+            }
+            else if (args[0] == "VF") {
+                ValidateFloat();
             }
             else if (args[0] == "B") {
                 //var ss = new BenchmarkDotNet.Reports.BenchmarkReport
@@ -31,18 +34,47 @@ namespace SNBenchmark
         }
 
         static void Usage() {
-            Console.WriteLine("USAGE: {V | B} [argument...]");
-            Console.WriteLine("V validates sorting methods for all sizes up to 28.");
+            Console.WriteLine("USAGE: {VI | VF | B} [argument...]");
+            Console.WriteLine("VI validates int sorting networks for all sizes up to 32.");
+            Console.WriteLine("VF validates float sorting networks for all sizes up to 32.");
             Console.WriteLine("B runs benchmarks with arguments following it.");
             Environment.Exit(0);
         }
 
-        static void Validate() {
-#if false   // THIS CODE EXISTS ONLY FOR DEBUGGING AND SINGLE-CASE TESTING.
+        static void ValidateInt() {
+            for (int size = 4; size <= 32; ++size) {
+                var n = SortingNetworks.UnsafeSort<int>.Create(size);
+                Console.Write($"Validating size {size:D2}: ");
+                try {
+                    Validation.Check(n, size);
+                    Console.WriteLine("OK");
+                }
+                catch (NotImplementedException e) {
+                    Console.WriteLine($"FAILED: {e.Message}");
+                }
+            }
+        }
+
+        static void ValidateFloat() {
+            for (int size = 4; size <= 32; ++size) {
+                var n = SortingNetworks.UnsafeSort<float>.Create(size);
+                Console.Write($"Validating size {size:D2}: ");
+                try {
+                    Validation.Check(n, size);
+                    Console.WriteLine("OK");
+                }
+                catch (NotImplementedException e) {
+                    Console.WriteLine($"FAILED: {e.Message}");
+                }
+            }
+        }
+
+        // This exists only for sporadic testing and debugging.
+        static void Test() {
             var d = new int[11157];
             int[] dc;
             var g = new Generators();
-            var nn = SortingNetworks.UnsafeSort.CreateInt(d.Length);
+            var nn = SortingNetworks.UnsafeSort<int>.Create(d.Length);
             for (int i = 0; i < d.Length; ++i) d[i] = i;
 
             var iteration = 0;
@@ -58,21 +90,6 @@ namespace SNBenchmark
                     if (d[i] != i)
                         throw new NotImplementedException();
             }
-
-#else
-
-            for (int size = 4; size <= 32; ++size) {
-                var n = SortingNetworks.UnsafeSort.CreateInt(size);
-                Console.Write($"Validating size {size:D2}: ");
-                try {
-                    Validation.Check(n, size);
-                    Console.WriteLine("OK");
-                } catch (NotImplementedException e) {
-                    Console.WriteLine($"FAILED: {e.Message}");
-                }
-            }
-
-#endif
         }
 
         static unsafe void TestAESRand() {

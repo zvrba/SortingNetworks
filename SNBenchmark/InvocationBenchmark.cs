@@ -7,7 +7,7 @@ namespace SNBenchmark
     public class InvocationBenchmark
     {
         readonly int[] data = new int[16];
-        readonly SortingNetworks.UnsafeSort<int> asorter = SortingNetworks.UnsafeSort.CreateInt(16);
+        readonly SortingNetworks.UnsafeSort<int> asorter = SortingNetworks.UnsafeSort<int>.Create(16);
         readonly SortingNetworks.PeriodicInt csorter = new SortingNetworks.PeriodicInt();
 
         [GlobalSetup]

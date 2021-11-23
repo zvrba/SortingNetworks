@@ -45,6 +45,37 @@ namespace SNBenchmark
         }
 
         /// <summary>
+        /// Overload for float arrays; <see cref="Check(SortingNetworks.UnsafeSort{int}, int)"/>.
+        /// </summary>
+        public static unsafe void Check(SortingNetworks.UnsafeSort<float> sort, int size) {
+            if (size < 4 || size > 32)
+                throw new ArgumentOutOfRangeException(nameof(size), "Valid range is [4, 32].");
+
+            var bits = new float[size];
+
+            fixed (float* pbits = bits) {
+                for (uint i = 0; i <= (1 << size) - 1; ++i) {
+                    int popcnt = 0; // Number of ones in i
+                    for (uint j = i, k = 0; k < size; ++k, j >>= 1) {
+                        int b = (int)(j & 1);
+                        pbits[k] = b;
+                        popcnt += b;
+                    }
+
+                    sort.Sorter(pbits, size);
+
+                    for (int k = 0; k < size - popcnt; ++k)
+                        if (pbits[k] != 0)
+                            throw new NotImplementedException($"Result is not a permutation for bit pattern {i:X8}.");
+
+                    for (int k = size - popcnt; k < size; ++k)
+                        if (pbits[k] != 1)
+                            throw new NotImplementedException($"Result is not a permutation for bit pattern {i:X8}.");
+                }
+            }
+        }
+
+        /// <summary>
         /// Checks whether array <paramref name="data"/> is sorted.
         /// </summary>
         /// <returns>True if the input is sorted, false otherwise.</returns>
