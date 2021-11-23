@@ -3,27 +3,6 @@
 namespace SortingNetworks
 {
     /// <summary>
-    /// Factory methods for creating instances of <see cref="UnsafeSort{T}"/>.
-    /// </summary>
-    public static class UnsafeSort
-    {
-        /// <summary>
-        /// Creates an instance of <c>UnsafeSort{int}</c>.
-        /// </summary>
-        /// <param name="maxLength">
-        /// Maximum array length supported by the sorter.  Sorters for sizes of up to 16 are more efficent than the general-length
-        /// sorters and should therefore be used for small arrays.
-        /// </param>
-        /// <exception cref="ArgumentOutOfRangeException">
-        /// <paramref name="maxLength"/> exceeds <c>2^24</c>, which is the maximum supported value.
-        /// </exception>
-        /// <seealso cref="UnsafeSort{T}"/>
-        public static UnsafeSort<int> CreateInt(int maxLength) {
-            return new IntSorter(maxLength);
-        }
-    }
-
-    /// <summary>
     /// Represents an in-place sorting method with possibly limited bounds on the valid values of <paramref name="c"/>.
     /// </summary>
     /// <typeparam name="T">Type of elements being sorted.</typeparam>
@@ -42,6 +21,30 @@ namespace SortingNetworks
     /// </remarks>
     public abstract class UnsafeSort<T> where T : unmanaged
     {
+        /// <summary>
+        /// Creates an instance of <c>UnsafeSort{T}</c>.
+        /// </summary>
+        /// <param name="maxLength">
+        /// Maximum array length supported by the sorter.  Sorters for sizes of up to 16 are more efficent than the general-length
+        /// sorters and should therefore be used for small arrays.
+        /// </param>
+        /// <exception cref="ArgumentOutOfRangeException">
+        /// <paramref name="maxLength"/> exceeds <c>2^24</c>, which is the maximum supported value. - OR - <typeparamref name="T"/>
+        /// is not <c>int</c> or <c>float</c>.
+        /// </exception>
+        public static UnsafeSort<T> Create(int maxLength) {
+            object ret = null;
+
+            if (typeof(T) == typeof(int))
+                ret = new IntSorter(maxLength);
+            if (typeof(T) == typeof(float))
+                ret = new FloatSorter(maxLength);
+
+            if (ret == null)
+                throw new ArgumentOutOfRangeException("Unsupported element type: " + typeof(T).Name);
+            return (UnsafeSort<T>)ret;
+        }
+
         // This base is derivable only in this assembly.
         private protected UnsafeSort()
         { }
