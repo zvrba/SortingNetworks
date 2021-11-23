@@ -39,7 +39,7 @@ namespace SNBenchmark
         /// <summary>
         /// Rearranges the existing contents of <paramref name="data"/> according to a random permutation.
         /// </summary>
-        public unsafe void FisherYates(int[] data) {
+        public unsafe void FisherYates<T>(T[] data) where T : unmanaged {
             var r = stackalloc uint[4]; // Randomness
             int k = 4;                  // Randomness is initially used up. j is temp.
             int j;
@@ -47,7 +47,7 @@ namespace SNBenchmark
             
             // Use pointer throughout to avoid bound checks.
             // Also, we're jumping around the array so the direction of the iteration doesn't matter.
-            fixed (int* p = data) {
+            fixed (T* p = data) {
                 for (int i = data.Length - 1; i > 0; --i) {
                     // Generate randomness if empty.
                     if (k == 4) {

@@ -1,95 +1,75 @@
 ﻿using System;
+using System.Collections.Generic;
+
 using BenchmarkDotNet.Attributes;
 
 namespace SNBenchmark
 {
-#if false
-    /// <summary>
-    /// This is copy-paste of <see cref="IntBenchmarkBase"/> because it's next to impossible to write generic code over arrays.
-    /// </summary>
-    public abstract class FloatBenchmarkBase
+    [XmlExporterAttribute.Brief]
+    [XmlExporter(fileNameSuffix: "xml", indentXml: true, excludeMeasurements: true)]
+    public class FloatBenchmark
     {
-        readonly float[] data = new float[16];
-        readonly SortingNetworks.Periodic16 periodic16 = new SortingNetworks.Periodic16();
+        readonly Generators generators = new Generators();
+        Action<float[]> g;
+        SortingNetworks.UnsafeSort<float> n;
+        float[] d;
 
-        protected abstract void Generate(float[] data);
+        //[Params(4, 8, 12, 16, 32, 47, 64, 97, 128, 147, 256, 317, 512, 711, 1024, 1943, 2048, 3717, 4096)]
+        [ParamsSource(nameof(Sizes))]
+        public int Size { get; set; }
 
-        protected void Baseline() {
-            Generate(data);
-            for (int i = 0; i < data.Length; ++i)   // Simulate sorting.
-                data[i] = i;
-            if (!SortingNetworks.Validation.IsSorted(data))
-                Environment.FailFast("Unsorted [Baseline].");
+        [GlobalSetup]
+        public void GlobalSetup() {
+            g = generators.FisherYates;
+            n = SortingNetworks.UnsafeSort<float>.Create(Size);
+            d = new float[Size];
+            Filler();
         }
 
-        protected void ArraySort() {
-            Generate(data);
-            Array.Sort(data);
-            if (!SortingNetworks.Validation.IsSorted(data))
-                Environment.FailFast("Unsorted [ArraySort].");
+        // Also used to simulate sorting.
+        void Filler() {
+            for (int i = 0; i < d.Length; ++i)
+                d[i] = i;
+        }
+
+        void ArraySorter() => Array.Sort(d);
+
+        unsafe void NetworkSorter() {
+            fixed (float* p = d) n.Sorter(p, d.Length);
+        }
+
+        void Template(Action sorter, string what) {
+            g(d);
+            sorter();
+            // Should leave the array sorted so no need to reinitialize it for the next iteration.
+            int i;
+            for (i = 0; i < d.Length && d[i] == i; ++i)
+                ;   // no body
+            if (i < d.Length)
+                Environment.FailFast(what);
         }
 
         /// <summary>
-        /// Exploits the property of float representation where floats can be sorted by using integer comparisons.
-        /// This does not account for NaNs.
+        /// Baseline: Fill array with sorted numbers, overwrite with sorted sequence, and validate for being sorted.
+        /// The first and last step are common for all benchmarks.
         /// </summary>
-        protected unsafe void NetworkSort() {
-            Generate(data);
-            fixed (float* p = data)
-                periodic16.Sort((int*)p);
-            if (!SortingNetworks.Validation.IsSorted(data))
-                Environment.FailFast("Unsorted [NetworkSort].");
-        }
-    }
-
-
-    /// <summary>
-    /// Benchmarks sorting floating point numbers in any range.
-    /// </summary>
-    public class FloatRandUBenchmark : FloatBenchmarkBase
-    {
-        readonly SortingNetworks.MWC1616Rand rng = new SortingNetworks.MWC1616Rand(new int[8] { 2, 3, 5, 7, 11, 13, 17, 19 });
-
-        protected sealed unsafe override void Generate(float[] data) {
-            fixed (float* p = data) {
-                for (int i = 0; i < data.Length / 4; ++i)
-                    rng.Get4U(p + 4 * i);
-            }
-        }
-
         [Benchmark(Baseline = true)]
-        public new void Baseline() => base.Baseline();
+        public void NoSort() => Template(Filler, "Unsorted [Baseline].");
+
+        /// <summary>
+        /// Sorting by using <c>Array.Sort()</c>.
+        /// </summary>
+        [Benchmark]
+        public void ArraySort() => Template(ArraySorter, "Unsorted [ArraySort].");
 
         [Benchmark]
-        public new void ArraySort() => base.ArraySort();
+        public unsafe void NetworkSort() => Template(NetworkSorter, "Unsorted [NetworkSort].");
 
-        [Benchmark]
-        public new void NetworkSort() => base.NetworkSort();
+        // The numbers in-between powers of two are deliberately set to odd numbers slightly lower/larger than half the interval.
+        // This to test the sorters for various lengths.
+        public IEnumerable<int> Sizes => new int[] {
+            4, 8, 12, 16, 27, 32, 47, 64, 128, 177, 256, 364, 512, 748, 1024, 2048, 3389, 4096, 6793, 8192, 14289, 16384,
+            32768, 53151, 65536, 96317, 131072, 191217, 262144, 398853, 524288, 719289, 1048576
+        };
     }
-
-    /// <summary>
-    /// Benchmarks sorting floating point numbers in any range.
-    /// </summary>
-    public class FloatRandNBenchmark : FloatBenchmarkBase
-    {
-        readonly SortingNetworks.MWC1616Rand rng = new SortingNetworks.MWC1616Rand(new int[8] { 2, 3, 5, 7, 11, 13, 17, 19 });
-
-        protected sealed unsafe override void Generate(float[] data) {
-            fixed (float* p = data) {
-                for (int i = 0; i < data.Length / 4; ++i)
-                    rng.Get4N(p + 4 * i);
-            }
-        }
-
-        [Benchmark(Baseline = true)]
-        public new void Baseline() => base.Baseline();
-
-        [Benchmark]
-        public new void ArraySort() => base.ArraySort();
-
-        [Benchmark]
-        public new void NetworkSort() => base.NetworkSort();
-    }
-
-#endif
 }
