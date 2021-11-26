@@ -77,7 +77,8 @@ Therefore `UnsafeRandom`, `AESRand` and `MWC1616Rand` classes were implemented. 
 Generics suck for numeric code.  I couldn't figure out how to write a generic `bool IsSorted(T[])` method that'd
 work for any numeric type.  Adding `where T : unmanaged` doesn't help as the compiler doesn't know that unmanaged
 types are comparable with less-than and equal.  Nor does it seem possible to write `void Iota(T[] data)` that'd
-fill `data` with numbers from `0 .. Length-1`.
+fill `data` with numbers from `0 .. Length-1`. This is apparently being actively worked on for new versions
+of .NET and C#.
 
 I attempted to make concrete benchmark classes `sealed`, but that makes BenchmarkDotNet fail because it apparently
 needs to derive from the benchmark class.
@@ -90,8 +91,7 @@ in size.  If considering larger sorters, inlining should be forced.
 # Benchmarks
 
 Raw benchmark data with excel file used to generate the report are in [BenchmarkResults](BenchmarkResults).  Main results
- are presented [here (PDF)](BenchmarkResults/Analysis.pdf) and are commented on in the next sections.  (Section titles correspond
- to page headers / XLS sheet names.)
+ with comments are presented [here (PDF)](BenchmarkResults/Analysis.pdf) with additional comments below.
 
 I couldn't figure out how to coerce BenchmarkDotNet into treating the baseline as additive overhead instead of, well, _baseline_.
 (Actually, that's what `[IterationSetup]` and `[IterationCleanup]` are for, but they come with a warning that they could spoil results
@@ -99,67 +99,12 @@ of microbenchmarks.)  The analysis presents results after subtracting the additi
 
 ## General observations
 
-Even for small sizes, `UnsafeSort<int>` is slightly slower than PeriodicInt.  For example, `PeriodicInt` takes ~22ns to sort 16
-elements, whereas `UnsafeSort<int>` takes ~38ns.  Even though the additional logic to handle all sizes between 9 and 16 is relatively
-simple, it shows in running times.
+Even for small sizes, `UnsafeSort<int>` is slightly slower than `PeriodicInt` which works for fixed-length arrays only
+(compare "IntBenchmark" with "Specialized" ).  For example, `PeriodicInt` takes ~22ns to sort 16 elements, whereas
+`UnsafeSort<int>` takes ~38ns.  Even though the additional logic to handle all sizes below 16 is relatively simple, it
+shows in running times.
 
-## Configuration
-
-The first page presents the hardware/software configuration under which the benchmarks were run.  Benchmarks were run on
-low load, but not on a dedicated machine.  If anything, this only worsens the results.
-
-## IntBenchmark
-
-An observable anomaly is the extreme speedup at which the network sorts 8-element vectors; the same anomaly is not observable
-for `Array.Sort`.  I have no explanation for this phenomenon.  For arrays of up to 1M elements, sorting network is 3-6 times
-(ignoring the outliers for N=8,12) faster than `Array.Sort`.
-
-## FloatBenchmark
-
-Similar to integers, floating-point numbers are sorted 6-8 time faster than with `Array.Sort`.  The speedup curve has more
-pronounced local minima and maxima.  The anomaly of extreme speedup is also observable and occurs for N=8,12,16.  For arrays
-of up to 1M elements, sorting network is (ignoring the outliers) 3-6 times faster.
-
-## Int vs Float
-
-This chart compares relative performance of sorting integers vs floats, both for arrays (blue curve) and sorting networks
-(orange curve).  In both cases, sorting integers is somewhat faster than sorting floats, though the difference is much more
-pronounced for network sort.  As the array size grows, the difference in performance diminishes, i.e., the ratio converges
-to 1, for both `Array.Sort` and network sort.
-
-## Specialized (PeriodicInt)
-
-This benchmark compares difference in performance when presented with different patterns: sorted in ascending order ("Asc",
-i.e., already sorted), sorted in descending order ("Desc") and randomly ordered ("Rand").  It is observable that ascending
-order is most favorable both for `Array.Sort` and network sort.  Descending order is more favorable for network sort.
-
-That network sort performs better for ascending or descending sequences is an *unexplained anomaly*: the algorithm is
-data-oblivious and always runs the same number of operations for a vector of given size, so it should run in the same
-time regardless of any patterns in the input.  In other words, there seems to exist a side-channel that leaks information
-about the input sequence.
-
-## Algorithmic complexity considerations
-
-`Array.Sort` uses [introsort](https://en.wikipedia.org/wiki/Introsort), which was determined by inspecting the source code
-on GitHub.  Introsort has theoretical worst-case and average-case  performance of `O(n lg n)`.  The periodic sorting network
-has theoretical performance of `O(n lg^2 n)`, irrespective of input (though see the comment about anomalies in the previous section).
-
-"Runtime fit" diagrams for IntBenchmark and FloatBenchmark display regression curves giving the highest R-number, with their
-equations summarized in the following table
-
-| Type  | Array.Sort                        | Network sort                       |
-|-------|-----------------------------------|------------------------------------|
-| Int   | y = 11.565*N^1.525 (R2 = 0.9994)  | y = 1.5987*N^1.2132 (R2 = 0.9987)  |
-| Float | y = 14.604*N^1.1394 (R2 = 0.9956) | y = 1.9795*N^1.876 (R2 = 0.998)    |
-
-Trying to fit the data to their theoretical curves ("LogFit" sheet), we achieve slightly higher R-squared numbers (presented
-for integers only):
-
-| Algorithm  | Fit                                                 |
-|------------|-----------------------------------------------------|
-| Array.Sort | y = 3.9669*N*lg(N) - 5227.5*lg(N) (R2 = 0.9998)     |
-| Network    | y = 0.0647*N*lg^2(N) - 14.203*lg^2(N) (R2 = 0.9992) |
-
+Sorting floating point numbers seems to be slightly slower than integers ("Int vs Float").  
 
 ## Invocation: direct vs delegate vs compiled expression
 
@@ -183,6 +128,7 @@ methods on an instance of `PeriodicInt`:
 | ConcreteInvoke | 23.28 ns | 0.310 ns | 0.290 ns |
 
 NB! The results between the two benchmarks are not directly comparable as they run different algorithms.
+TODO: same for float.  Re-export analysis.
 
 # References
 
