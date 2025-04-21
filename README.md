@@ -1,3 +1,7 @@
+# ARCHIVED
+
+This repository has been archived and development has been moved [here](https://github.com/zvrba/Podaga).
+
 # Sorting networks
 
 Playground for exploring implementation techniques for sorting networks.  These can sort small arrays much faster
